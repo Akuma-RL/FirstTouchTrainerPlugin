@@ -4,34 +4,21 @@
 
 void FirstTouchTrainer::RenderSettings()
 {
-	ImGui::TextUnformatted("Plugin to see the speed differential between your car, and the ball!\n");
+	ImGui::TextUnformatted("Plugin to see the speed differential between your car, and the ball!");
 
 	//enable plugin checkbox
 	CVarWrapper enablePlugin = cvarManager->getCvar("FTT_Enable");
 	if (!enablePlugin) { return; }
 	bool pluginEnabled = enablePlugin.getBoolValue();
-	if (ImGui::Checkbox("Enable/Disable Plugin", &pluginEnabled)) {
+	if (ImGui::Checkbox("Enable/Disable OSD", &pluginEnabled)) {
 		enablePlugin.setValue(pluginEnabled);
 	}
 	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Enable/Disable Plugin");
+		ImGui::SetTooltip("Enable/Disable On Screen Display");
 	}
 
-	ImGui::TextUnformatted("\nText Position Sliders");
-
-	CVarWrapper enableLogging = cvarManager->getCvar("FTT_Speed_Log");
-	if (!enableLogging) { return; }
-	bool loggingEnabled = enableLogging.getBoolValue();
-	if (ImGui::Checkbox("Enable/Disable Logging - WIP", &loggingEnabled)) {
-		enableLogging.setValue(loggingEnabled);
-	}
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Enable/Disable Logging");
-	}
-
-	ImGui::TextUnformatted("\nText Position Sliders");
-
-	//Text X Position Slider
+	//text X Position Slider
+	ImGui::TextUnformatted("Text Position Sliders");
 	CVarWrapper xPosCvar = cvarManager->getCvar("FTT_X_Position");
 	if (!xPosCvar) { return; }
 	float posX = xPosCvar.getFloatValue();
@@ -43,7 +30,7 @@ void FirstTouchTrainer::RenderSettings()
 		ImGui::SetTooltip(hoverXText.c_str());
 	}
 
-	//Text Y Position Slider
+	//text Y Position Slider
 	CVarWrapper yPosCvar = cvarManager->getCvar("FTT_Y_Position");
 	if (!yPosCvar) { return; }
 	float posY = yPosCvar.getFloatValue();
@@ -55,15 +42,41 @@ void FirstTouchTrainer::RenderSettings()
 		ImGui::SetTooltip(hoverYText.c_str());
 	}
 
-	//Reset Sliders to Default
+	//text size slider
+	ImGui::TextUnformatted("Text Size Slider");
+	CVarWrapper textSizeCvar = cvarManager->getCvar("FTT_Text_Size");
+	if (!textSizeCvar) { return; }
+	int textSize = textSizeCvar.getIntValue();
+	if (ImGui::SliderInt("Text Size", &textSize, 1, 10)) {
+		textSizeCvar.setValue(textSize);
+	}
+	if (ImGui::IsItemHovered()) {
+		std::string hoverTextSize = "Text Size is " + std::to_string(textSize);
+		ImGui::SetTooltip(hoverTextSize.c_str());
+	}
+
+	//checkbox for drop shadows
+	CVarWrapper enableShadow = cvarManager->getCvar("FTT_Shadow");
+	if (!enableShadow) { return; }
+	bool shadowEnabled = enableShadow.getBoolValue();
+	if (ImGui::Checkbox("Enable/Disable Drop Shadow", &shadowEnabled)) {
+		enableShadow.setValue(shadowEnabled);
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Enable/Disable Text Drop Shadows");
+	}
+
+	//reset sliders to default
 	if (ImGui::Button("Reset Defaults")) {
 		xPosCvar.setValue(880.0f);
 		yPosCvar.setValue(1030.0f);
+		textSizeCvar.setValue(3);
+		enableShadow.setValue(true);
 	}
 
 	ImGui::TextUnformatted("\n");
 
-	//Getting color data from user
+	//Getting color data from user for the "good color"
 	CVarWrapper goodRange = cvarManager->getCvar("FTT_Good_Range");
 	if (!goodRange) { return; }
 	LinearColor textGoodColor = goodRange.getColorValue() / 255;
@@ -75,6 +88,7 @@ void FirstTouchTrainer::RenderSettings()
 		ImGui::SetTooltip("Set color of the good touch speed range");
 	}
 
+	//Getting color data from user for the "alright color"
 	CVarWrapper alrightRange = cvarManager->getCvar("FTT_Alright_Range");
 	if (!alrightRange) { return; }
 	LinearColor textAlrightColor = alrightRange.getColorValue() / 255;
@@ -86,6 +100,7 @@ void FirstTouchTrainer::RenderSettings()
 		ImGui::SetTooltip("Set color of the alright touch speed range");
 	}
 
+	//Getting color data from user for the "bad color"
 	CVarWrapper badRange = cvarManager->getCvar("FTT_Bad_Range");
 	if (!badRange) { return; }
 	LinearColor textBadColor = badRange.getColorValue() / 255;
@@ -95,52 +110,6 @@ void FirstTouchTrainer::RenderSettings()
 	*badColor = textBadColor * 255;
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("Set color of the bad touch speed range");
-	}
-
-	if (ImGui::Button("Reset Defaults")) {
-		goodRange.setValue("0, 255, 0, 255");
-		alrightRange.setValue("255, 255, 0, 255");
-		badRange.setValue("255, 0, 0, 255");
-
-		LinearColor resetGood = goodRange.getColorValue() / 255;
-		LinearColor resetAlright = alrightRange.getColorValue() / 255;
-		LinearColor resetBad = badRange.getColorValue() / 255;
-
-		*goodColor = resetGood * 255;
-		*alrightColor = resetAlright * 255;
-		*badColor = resetBad * 255;
-	}
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Reset Colors to Default");
-	};
-
-
-
-	ImGui::TextUnformatted("\nText Position Sliders");
-
-	//Text Size Slider
-	CVarWrapper textSizeCvar = cvarManager->getCvar("FTT_Text_Size");
-	if (!textSizeCvar) { return; }
-	int textSize = textSizeCvar.getIntValue();
-	if (ImGui::SliderInt("Text Size", &textSize, 1, 5)) {
-		textSizeCvar.setValue(textSize);
-	}
-	if (ImGui::IsItemHovered()) {
-		std::string hoverTextSize = "Text Size is " + std::to_string(textSize);
-		ImGui::SetTooltip(hoverTextSize.c_str());
-	}
-
-	/*ImGui::TextUnformatted("\n");*/
-
-	//checkbox for drop shadows
-	CVarWrapper enableShadow = cvarManager->getCvar("FTT_Shadow");
-	if (!enableShadow) { return; }
-	bool shadowEnabled = enableShadow.getBoolValue();
-	if (ImGui::Checkbox("Enable/Disable Drop Shadow", &shadowEnabled)) {
-		enableShadow.setValue(shadowEnabled);
-	}
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Enable/Disable Text Drop Shadows");
 	}
 
 	return;
@@ -165,9 +134,6 @@ void FirstTouchTrainer::Render(CanvasWrapper canvas)
 	else {
 		canvas.SetColor(*badColor);
 	}
-
-	LinearColor drawnColor = canvas.GetColor();
-	*gDrawnColor = drawnColor;
 
 	if (gameWrapper->GetbMetric()) {
 		canvas.DrawString(toStringPrecision(drawVelocity * .036f, 2) + " KPH", *TextSize, *TextSize, *bDropShadow);
