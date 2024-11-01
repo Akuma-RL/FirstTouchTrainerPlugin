@@ -22,7 +22,7 @@ void FirstTouchTrainer::RenderSettings()
 	CVarWrapper xPosCvar = cvarManager->getCvar("FTT_X_Position");
 	if (!xPosCvar) { return; }
 	float posX = xPosCvar.getFloatValue();
-	if (ImGui::SliderFloat("Horizontal Position", &posX, 0.0, 1920.0)) {
+	if (ImGui::SliderFloat("Horizontal Position", &posX, 0.0, 3840)) {
 		xPosCvar.setValue(posX);
 	}
 	if (ImGui::IsItemHovered()) {
@@ -34,7 +34,7 @@ void FirstTouchTrainer::RenderSettings()
 	CVarWrapper yPosCvar = cvarManager->getCvar("FTT_Y_Position");
 	if (!yPosCvar) { return; }
 	float posY = yPosCvar.getFloatValue();
-	if (ImGui::SliderFloat("Vertical Position", &posY, 0.0, 1080.0)) {
+	if (ImGui::SliderFloat("Vertical Position", &posY, 0.0, 2160)) {
 		yPosCvar.setValue(posY);
 	}
 	if (ImGui::IsItemHovered()) {
