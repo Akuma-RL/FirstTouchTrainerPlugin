@@ -4,7 +4,7 @@
 #include<thread>
 
 
-BAKKESMOD_PLUGIN(FirstTouchTrainer, "Train First Touches", plugin_version, PLUGINTYPE_FREEPLAY)
+BAKKESMOD_PLUGIN(FirstTouchTrainer, "First Touch Trainer", plugin_version, PLUGINTYPE_FREEPLAY)
 
 std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
 
@@ -29,16 +29,18 @@ void FirstTouchTrainer::onLoad()
 		firstTouchTrainer();
 		}, "", PERMISSION_ALL);
 
-
 	cvarManager->registerCvar("FTT_Enable", "1", "Show First Touch Trainer", true, true, 0, true, 1).bindTo(bEnabled);
-	cvarManager->registerCvar("FTT_Speed_Log", "1", "Enables Speed Logging", true, true, 0, true, 1).bindTo(speedLog);
-	cvarManager->registerCvar("FTT_Shadow", "1", "Enable text drop shadows", true, true, 0, true, 1).bindTo(bDropShadow);
+
 	cvarManager->registerCvar("FTT_X_Position", "880", "Change Text X Position", true, true, 0, true, 1920).bindTo(XPos);
 	cvarManager->registerCvar("FTT_Y_Position", "1030", "Change Text Y Position", true, true, 0, true, 1080).bindTo(YPos);
 	cvarManager->registerCvar("FTT_Text_Size", "3", "Change Text Size", true, true, 0, true, 5).bindTo(TextSize);
+	cvarManager->registerCvar("FTT_Shadow", "1", "Enable text drop shadows", true, true, 0, true, 1).bindTo(bDropShadow);
+
 	cvarManager->registerCvar("FTT_Good_Range", "#00FF00", "Good Range Color", true).bindTo(goodColor);
 	cvarManager->registerCvar("FTT_Alright_Range", "#FFFF00", "Alright Range Color").bindTo(alrightColor);
 	cvarManager->registerCvar("FTT_Bad_Range", "#FF0000FF", "Bad Range Color").bindTo(badColor);
+
+	cvarManager->registerCvar("FTT_Speed_Log", "1", "Enables Speed Logging", true, true, 0, true, 1).bindTo(speedLog);
 
 	cvarManager->getCvar("FTT_Speed_Log").addOnValueChanged([this](std::string oldValue, CVarWrapper cvar) {
 		if (cvar.getBoolValue()) {
@@ -77,14 +79,7 @@ int FirstTouchTrainer::checkConditions()
 {
 	if (!(*bEnabled)) { return 1; }
 
-	ServerWrapper server = gameWrapper->GetCurrentGameState();
-	if (server.IsNull()) { return 1; }
-
-	BallWrapper ball = server.GetBall();
-	if (ball.IsNull()) { return 1; }
-
-	CarWrapper car = gameWrapper->GetLocalCar();
-	if (car.IsNull()) { return 1; }
+	if (!gameWrapper->IsInGame()) { return 1; }
 
 	else
 	{
@@ -95,7 +90,7 @@ int FirstTouchTrainer::checkConditions()
 std::tuple<float> FirstTouchTrainer::firstTouchTrainer()
 {
 
-	if (!(*bEnabled)) { return 0.0f; }
+	if (checkConditions() == 1) { return 0.0f; }
 
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
 	if (server.IsNull()) { return 0.0f; }
