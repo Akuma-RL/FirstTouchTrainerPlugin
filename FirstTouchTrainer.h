@@ -27,8 +27,8 @@ protected:
 	std::shared_ptr<int>tTextSize;
 	std::shared_ptr<bool>tDropShadow;
 
-	std::shared_ptr<float>tDefaultXPos;
-	std::shared_ptr<float>tDefaultYPos;
+	std::shared_ptr<float>tXPosDefault;
+	std::shared_ptr<float>tYPosDefault;
 
 	//text color settings
 	std::shared_ptr<LinearColor>cGoodColor;
@@ -42,8 +42,8 @@ protected:
 	std::shared_ptr<LinearColor>sSessionTimerColor;
 
 
-	std::shared_ptr<float>sDefaultXPos;
-	std::shared_ptr<float>sDefaultYPos;
+	std::shared_ptr<float>sSessionTimerXDefault;
+	std::shared_ptr<float>sSessionTimerYDefault;
 
 
 public:

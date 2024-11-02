@@ -66,8 +66,8 @@ void FirstTouchTrainer::RenderSettings()
 
 			//reset sliders to default
 			if (ImGui::Button("Reset Defaults")) {
-				*tXPos = *tDefaultXPos;
-				*tYPos = *tDefaultYPos;
+				*tXPos = *tXPosDefault;
+				*tYPos = *tYPosDefault;
 				*tTextSize = textDefaultSize;
 				*tDropShadow = textDefaultDropShadow;
 			}
@@ -152,8 +152,8 @@ void FirstTouchTrainer::RenderSettings()
 			}
 			//reset sliders to default
 			if (ImGui::Button("Reset Defaults##2")) {
-				*sSessionTimerX = *sDefaultXPos;
-				*sSessionTimerY = *sDefaultYPos;
+				*sSessionTimerX = *sSessionTimerXDefault;
+				*sSessionTimerY = *sSessionTimerYDefault;
 			}
 
 			//Getting color data from user for the session timer

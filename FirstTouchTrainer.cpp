@@ -29,12 +29,12 @@ void FirstTouchTrainer::onLoad()
 
 	float speedDefaultX = screenSize.X / 2.18;
 	float speedDefaultY = screenSize.Y / 1.05;
-	
-	tDefaultXPos = std::make_shared<float>(0.0f);
-	tDefaultYPos = std::make_shared<float>(0.0f);
 
-	*tDefaultXPos = speedDefaultX;
-	*tDefaultYPos = speedDefaultY;
+	tXPosDefault = std::make_shared<float>(0.0f);
+	tYPosDefault = std::make_shared<float>(0.0f);
+
+	*tXPosDefault = speedDefaultX;
+	*tYPosDefault = speedDefaultY;
 
 	std::string speedDefaultXString = toStringPrecision(speedDefaultX, 2);
 	std::string speedDefaultYString = toStringPrecision(speedDefaultY, 2);
@@ -50,11 +50,11 @@ void FirstTouchTrainer::onLoad()
 	float timerDefaultX = screenSize.X / 2.13;
 	float timerDefaultY = screenSize.Y / 108;
 
-	sDefaultXPos = std::make_shared<float>(0.0f);
-	sDefaultYPos = std::make_shared<float>(0.0f);
+	sSessionTimerXDefault = std::make_shared<float>(0.0f);
+	sSessionTimerYDefault = std::make_shared<float>(0.0f);
 
-	*sDefaultXPos = timerDefaultX;
-	*sDefaultYPos = timerDefaultY;
+	*sSessionTimerXDefault = timerDefaultX;
+	*sSessionTimerYDefault = timerDefaultY;
 
 	std::string timerDefaultXString = toStringPrecision(timerDefaultX, 2);
 	std::string timerDefaultYString = toStringPrecision(timerDefaultY, 2);
