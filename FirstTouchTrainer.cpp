@@ -8,22 +8,64 @@ std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
 
 void FirstTouchTrainer::onLoad()
 {
-
 	_globalCvarManager = cvarManager;
+
+	//global screen size limit
+	bScreenSizeX = std::make_shared<float>(0.0f);
+	bScreenSizeY = std::make_shared<float>(0.0f);
+
+	Vector2 screenSize = gameWrapper->GetScreenSize();
+	*bScreenSizeX = screenSize.X;
+	*bScreenSizeY = screenSize.Y;
 
 	//OSD enabled or disabled
 	bEnabled = std::make_shared<bool>(false);
 
 	//text settings
-	XPos = std::make_shared<int>(0);
-	YPos = std::make_shared<int>(0);
-	TextSize = std::make_shared<int>(0);
-	bDropShadow = std::make_shared<bool>(false);
+	tXPos = std::make_shared<int>(0);
+	tYPos = std::make_shared<int>(0);
+	tTextSize = std::make_shared<int>(0);
+	tDropShadow = std::make_shared<bool>(false);
+
+	float speedDefaultX = screenSize.X / 2.18;
+	float speedDefaultY = screenSize.Y / 1.05;
+	
+	tDefaultXPos = std::make_shared<float>(0.0f);
+	tDefaultYPos = std::make_shared<float>(0.0f);
+
+	*tDefaultXPos = speedDefaultX;
+	*tDefaultYPos = speedDefaultY;
+
+	std::string speedDefaultXString = toStringPrecision(speedDefaultX, 2);
+	std::string speedDefaultYString = toStringPrecision(speedDefaultY, 2);
+
+
+	//session timer settings
+	sSessionTimerEnabled = std::make_shared<bool>(false);
+	sSessionTimerX = std::make_shared<int>(0);
+	sSessionTimerY = std::make_shared<int>(0);
+
+	sSessionTimerColor = std::make_shared<LinearColor>();
+
+	float timerDefaultX = screenSize.X / 2.13;
+	float timerDefaultY = screenSize.Y / 108;
+
+	sDefaultXPos = std::make_shared<float>(0.0f);
+	sDefaultYPos = std::make_shared<float>(0.0f);
+
+	*sDefaultXPos = timerDefaultX;
+	*sDefaultYPos = timerDefaultY;
+
+	std::string timerDefaultXString = toStringPrecision(timerDefaultX, 2);
+	std::string timerDefaultYString = toStringPrecision(timerDefaultY, 2);
 
 	//text color settings
-	goodColor = std::make_shared<LinearColor>();
-	alrightColor = std::make_shared<LinearColor>();
-	badColor = std::make_shared<LinearColor>();
+	cGoodColor = std::make_shared<LinearColor>();
+	cAlrightColor = std::make_shared<LinearColor>();
+	cBadColor = std::make_shared<LinearColor>();
+
+
+
 
 	cvarManager->registerNotifier("FTTPlugin", [this](std::vector<std::string> args) {
 		firstTouchTrainer();
@@ -33,15 +75,21 @@ void FirstTouchTrainer::onLoad()
 	cvarManager->registerCvar("FTT_Enable", "1", "Show First Touch Trainer", true, true, 0, true, 1).bindTo(bEnabled);
 
 	//text settings cvars
-	cvarManager->registerCvar("FTT_X_Position", "880", "Change Text X Position", true, true, 0, true, 3840).bindTo(XPos);
-	cvarManager->registerCvar("FTT_Y_Position", "1030", "Change Text Y Position", true, true, 0, true, 2160).bindTo(YPos);
-	cvarManager->registerCvar("FTT_Text_Size", "3", "Change Text Size", true, true, 0, true, 5).bindTo(TextSize);
-	cvarManager->registerCvar("FTT_Shadow", "1", "Enable text drop shadows", true, true, 0, true, 1).bindTo(bDropShadow);
+	cvarManager->registerCvar("FTT_X_Position", speedDefaultXString, "Change Text X Position", true, true, 0, true, *bScreenSizeX).bindTo(tXPos);
+	cvarManager->registerCvar("FTT_Y_Position", speedDefaultYString, "Change Text Y Position", true, true, 0, true, *bScreenSizeY).bindTo(tYPos);
+	cvarManager->registerCvar("FTT_Text_Size", "3", "Change Text Size", true, true, 1, true, 10).bindTo(tTextSize);
+	cvarManager->registerCvar("FTT_Shadow", "1", "Enable text drop shadows", true, true, 0, true, 1).bindTo(tDropShadow);
 
 	//color settings cvars
-	cvarManager->registerCvar("FTT_Good_Range", "#00FF00", "Good Range Color", true).bindTo(goodColor);
-	cvarManager->registerCvar("FTT_Alright_Range", "#FFFF00", "Alright Range Color", true).bindTo(alrightColor);
-	cvarManager->registerCvar("FTT_Bad_Range", "#FF0000", "Bad Range Color", true).bindTo(badColor);
+	cvarManager->registerCvar("FTT_Good_Range", "#00FF00", "Good Range Color", true).bindTo(cGoodColor);
+	cvarManager->registerCvar("FTT_Alright_Range", "#FFFF00", "Alright Range Color", true).bindTo(cAlrightColor);
+	cvarManager->registerCvar("FTT_Bad_Range", "#FF0000", "Bad Range Color", true).bindTo(cBadColor);
+
+	//session timer
+	cvarManager->registerCvar("FTT_SessionTimer", "0", "Turn on session timer to keep track of how long you've been in this training session", true, true, 0, true, 1).bindTo(sSessionTimerEnabled);
+	cvarManager->registerCvar("FTT_SessionTimerX", timerDefaultXString, "Change session timer X position", true, true, 0, true, *bScreenSizeX).bindTo(sSessionTimerX);
+	cvarManager->registerCvar("FTT_SessionTimerY", timerDefaultYString, "Change session timer Y position", true, true, 0, true, *bScreenSizeY).bindTo(sSessionTimerY);
+	cvarManager->registerCvar("FTT_SessionTimerColor", "#FFFFFF", "Change timer color", true).bindTo(sSessionTimerColor);
 
 	//call game every frame to render canvas
 	gameWrapper->RegisterDrawable([this](CanvasWrapper canvas)
@@ -52,7 +100,7 @@ void FirstTouchTrainer::onLoad()
 
 std::tuple<float> FirstTouchTrainer::firstTouchTrainer()
 {
-	if (checkConditions() == 1) { return 0.0f; }
+	if (checkConditions() == 0) { return 0.0f; }
 
 	//create server wrapper to get ball info
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
@@ -84,12 +132,24 @@ std::string FirstTouchTrainer::toStringPrecision(float InValue, int Precision)
 int FirstTouchTrainer::checkConditions()
 {
 	//check if OSD is enabled
-	if (!(*bEnabled)) { return 1; }
+	if (!(*bEnabled)) { return 0; }
 
-	//check if player is in live game or not
-	if (!gameWrapper->IsInGame()) { return 1; }
+	//check if player is in online match
+	if (!gameWrapper->IsInGame()) { return 0; }
 
-	return 0;
+	return 1;
 }
+
+int FirstTouchTrainer::timerCheckConditions()
+{
+	//check if session timer is enabled
+	if (*sSessionTimerEnabled == 0) { return 0; }
+
+	//check if player is in online match
+	if (!gameWrapper->IsInGame()) { return 0; }
+
+	return 1;
+}
+
 
 void FirstTouchTrainer::onUnload() { }
