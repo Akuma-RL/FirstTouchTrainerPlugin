@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "FirstTouchTrainer.h"
 
-
 BAKKESMOD_PLUGIN(FirstTouchTrainer, "First Touch Trainer", plugin_version, PLUGINTYPE_FREEPLAY)
 
 std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
@@ -120,13 +119,62 @@ void FirstTouchTrainer::onLoad()
 
 	cvarManager->registerCvar("FTT_SessionTimerColor", "#FFFFFF", "Change timer color", true).bindTo(sSessionTimerColor);
 
+	//////////////////////////////////////////////////////////////////
+	////////////////////TOUCH ZONE SETTINGS///////////////////////////
+	//////////////////////////////////////////////////////////////////
+
+	zTouchZoneEnabled = std::make_shared<bool>(false);
+
+	cvarManager->registerCvar("FTT_TouchZoneEnabled", "0", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
+
+	///////////////////////COLOR SETTINGS//////////////////////////////
+
+	zTouchZoneColor = std::make_shared<LinearColor>();
+
+	cvarManager->registerCvar("FTT_TouchZoneColor", "#FF0000FF", "Change the color of the Touch Zone", true).bindTo(zTouchZoneColor);
+
+	gameWrapper->HookEvent("Function TAGame.Mutator_Freeplay_TA.Init", bind(&FirstTouchTrainer::OnFreeplayLoad, this, std::placeholders::_1));
+	gameWrapper->HookEvent("Function TAGame.GameEvent_Soccar_TA.Destroyed", bind(&FirstTouchTrainer::OnFreeplayDestroy, this, std::placeholders::_1));
+	gameWrapper->HookEvent("Function TAGame.GameEvent_TrainingEditor_TA.StartPlayTest", bind(&FirstTouchTrainer::OnFreeplayLoad, this, std::placeholders::_1));
+	gameWrapper->HookEvent("Function TAGame.GameEvent_TrainingEditor_TA.Destroyed", bind(&FirstTouchTrainer::OnFreeplayDestroy, this, std::placeholders::_1));
+	gameWrapper->HookEvent("Function TAGame.GameInfo_Replay_TA.InitGame", bind(&FirstTouchTrainer::OnFreeplayLoad, this, std::placeholders::_1));
+	gameWrapper->HookEvent("Function TAGame.Replay_TA.EventPostTimeSkip", bind(&FirstTouchTrainer::OnFreeplayLoad, this, std::placeholders::_1));
+	gameWrapper->HookEvent("Function TAGame.GameInfo_Replay_TA.Destroyed", bind(&FirstTouchTrainer::OnFreeplayDestroy, this, std::placeholders::_1));
 
 	//////////////////////////RENDER///////////////////////////////////
 
 	gameWrapper->RegisterDrawable([this](CanvasWrapper canvas)
 		{
-			Render(canvas);
+			if (*bEnabled)
+			{
+				RenderFTT(canvas);
+			}
+
+			if (*sSessionTimerEnabled)
+			{
+				RenderSessionTimer(canvas);
+			}
+
+			if (*zTouchZoneEnabled)
+			{
+				RenderTouchZone(canvas);
+			}
+
 		});
+}
+
+void FirstTouchTrainer::OnFreeplayLoad(std::string eventName)
+{
+	circles.clear();
+	cvarManager->log(std::string("OnFreeplayLoad") + eventName);
+	if (*zTouchZoneEnabled) {
+		gameWrapper->RegisterDrawable(std::bind(&FirstTouchTrainer::RenderFTT, this, std::placeholders::_1));
+	}
+}
+
+void FirstTouchTrainer::OnFreeplayDestroy(std::string eventName)
+{
+	/*	gameWrapper->UnregisterDrawables()*/;
 }
 
 std::tuple<float> FirstTouchTrainer::firstTouchTrainer()
@@ -182,5 +230,13 @@ int FirstTouchTrainer::timerCheckConditions()
 	return 1;
 }
 
+int FirstTouchTrainer::touchZoneCheckConditions()
+{
+	if (*zTouchZoneEnabled == 0) { return 0; }
 
+
+	if (!gameWrapper->IsInGame()) { return 0; }
+
+	return 1;
+}
 void FirstTouchTrainer::onUnload() { }

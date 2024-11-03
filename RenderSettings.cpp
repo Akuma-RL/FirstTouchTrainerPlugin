@@ -1,6 +1,15 @@
 #include "pch.h"
 #include "FirstTouchTrainer.h"
-
+#include "RenderingTools/RenderingTools.h"
+//#include "RenderingTools/Objects/Circle.h"
+//#include "RenderingTools/Objects/Circle2D.h"
+//#include "RenderingTools/Objects/Frustum.h"
+//#include "RenderingTools/Objects/Line.h"
+//#include "RenderingTools/Objects/Sphere.h"
+//#include "RenderingTools/Extra/WrapperStructsExtensions.h"
+//#include "RenderingTools/Extra/RenderingMath.h"
+//#include "RenderingTools/Extra/RenderingAssistant.h"
+//#include "RenderingTools/Extra/CanvasExtensions.h"
 
 void FirstTouchTrainer::RenderSettings()
 {
@@ -158,7 +167,7 @@ void FirstTouchTrainer::RenderSettings()
 
 			//Getting color data from user for the session timer
 			LinearColor textSessionTimerColor = *sSessionTimerColor / 255;
-			if (ImGui::ColorEdit4("Sesion Timer Color", &textSessionTimerColor.R)) {
+			if (ImGui::ColorEdit4("Session Timer Color", &textSessionTimerColor.R)) {
 				*sSessionTimerColor = textSessionTimerColor * 255;
 			}
 			if (ImGui::IsItemHovered()) {
@@ -174,12 +183,50 @@ void FirstTouchTrainer::RenderSettings()
 
 			ImGui::TreePop();
 		}
+
+	}
+
+	ImGui::TextUnformatted("\n");
+
+	//enable touch zone
+	bool touchZoneEnabled = *zTouchZoneEnabled;
+	if (ImGui::Checkbox("Enable/Disable Touch Zone", &touchZoneEnabled)) {
+		*zTouchZoneEnabled = touchZoneEnabled;
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Enable/Disable Touch zone");
+	}
+	if (touchZoneEnabled)
+	{
+		if (ImGui::TreeNode("Touch Zone Display Settings"))
+		{
+			static bool closable_group = true;
+
+			//Getting color data from user for the session timer
+			LinearColor touchZoneColor = *zTouchZoneColor / 255;
+			if (ImGui::ColorEdit4("Touch Zone Color", &touchZoneColor.R)) {
+				*zTouchZoneColor = touchZoneColor * 255;
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Set color of the touch zone");
+			}
+			LinearColor defaultTouchZoneColor(1, 0, 0, 1);
+			if (ImGui::Button("Default Colors##3")) {
+				*zTouchZoneColor = defaultTouchZoneColor * 255;
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Reset the colors to the default value assigned to them");
+			}
+
+			ImGui::TreePop();
+		}
+
 	}
 	return;
 }
 
 
-void FirstTouchTrainer::Render(CanvasWrapper canvas)
+void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas)
 {
 	if (checkConditions() == 1)
 	{
@@ -206,8 +253,11 @@ void FirstTouchTrainer::Render(CanvasWrapper canvas)
 			canvas.DrawString(toStringPrecision(drawVelocity / 44.704f, 2) + " MPH", *tTextSize, *tTextSize, *tDropShadow);
 		}
 	}
+	return;
+}
 
-	//check if session timer is enabled
+void FirstTouchTrainer::RenderSessionTimer(CanvasWrapper canvas)
+{
 	if (timerCheckConditions() == 1)
 	{
 
@@ -237,6 +287,78 @@ void FirstTouchTrainer::Render(CanvasWrapper canvas)
 
 		canvas.SetPosition(Vector2{ *sSessionTimerX, *sSessionTimerY });
 		canvas.DrawString(timerText, *tTextSize, *tTextSize, *tDropShadow);
+
+		return;
 	}
+}
+
+void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
+{
+	if (touchZoneCheckConditions() == 1)
+	{
+		ServerWrapper server = gameWrapper->GetCurrentGameState();
+
+		CameraWrapper camera = gameWrapper->GetCamera();
+		if (camera.IsNull()) { return; }
+
+		BallWrapper ball = server.GetBall();
+		if (ball.IsNull()) { return; }
+
+		CarWrapper car = gameWrapper->GetLocalCar();
+		if (car.IsNull()) { return; }
+
+		RT::Frustum frust{ canvas, camera };
+
+		canvas.SetColor(*zTouchZoneColor);
+
+		Vector v = ball.GetLocation();
+		Rotator r(0, 0, 0);
+
+		Vector2F carLocation2D = canvas.ProjectF(v);
+
+		float diff = (camera.GetLocation() - v).magnitude();
+		Quat car_rot = RotatorToQuat(r);
+
+		auto wheels = car.GetVehicleSim().GetWheels();
+
+		float radius = 100.0f;
+		int thicc = 1;
+		float pie = 1.0f;
+		int steps = 32;
+
+		Quat upright_rot = RT::AngleAxisRotation(3.14159f / 2.0f, Vector{ 0.f, 0.f, 0.f });
+		for (auto wheel : wheels)
+		{
+			Vector sub(0.f, 0.f, 89.13f);
+			Vector loc = v;
+			loc = loc - sub;
+
+			Quat turn_rot = RT::AngleAxisRotation(wheel.GetSteer2(), Vector{ 0.f, 0.f, 1.f });
+			Quat final_rot = car_rot * turn_rot * upright_rot;
+
+			RT::Circle circ{ loc, final_rot, radius, thicc, pie, steps };
+
+			circ.Draw(canvas, frust);
+		}
+	}
+
+
+	/*Vector ballLocation = ball.GetLocation();
+
+	float ballX = ballLocation.X;
+	float ballY = ballLocation.Y;
+	float ballZ = ballLocation.Z;
+
+	Vector ballTrack(ballX, ballY, ballZ);
+
+	Vector2 projectCanvas = canvas.Project(ballTrack);
+
+	float radius = 1.0f;
+
+	RT::Circle2D2 circ(projectCanvas, radius, 16, 1);
+
+	canvas.SetColor(*zTouchZoneColor);
+	circ.Draw(canvas);*/
+
 	return;
 }
