@@ -10,7 +10,9 @@ void FirstTouchTrainer::onLoad()
 {
 	_globalCvarManager = cvarManager;
 
-	//global screen size limit
+	//////////////////////////////////////////////////////////////////
+	/////////////////GLOBAL SCREEN SIZE LIMIT/////////////////////////
+	//////////////////////////////////////////////////////////////////
 	bScreenSizeX = std::make_shared<float>(0.0f);
 	bScreenSizeY = std::make_shared<float>(0.0f);
 
@@ -18,80 +20,109 @@ void FirstTouchTrainer::onLoad()
 	*bScreenSizeX = screenSize.X;
 	*bScreenSizeY = screenSize.Y;
 
-	//OSD enabled or disabled
-	bEnabled = std::make_shared<bool>(false);
-
-	//text settings
-	tXPos = std::make_shared<int>(0);
-	tYPos = std::make_shared<int>(0);
-	tTextSize = std::make_shared<int>(0);
-	tDropShadow = std::make_shared<bool>(false);
-
-	float speedDefaultX = screenSize.X / 2.18;
-	float speedDefaultY = screenSize.Y / 1.05;
-
-	tXPosDefault = std::make_shared<float>(0.0f);
-	tYPosDefault = std::make_shared<float>(0.0f);
-
-	*tXPosDefault = speedDefaultX;
-	*tYPosDefault = speedDefaultY;
-
-	std::string speedDefaultXString = toStringPrecision(speedDefaultX, 2);
-	std::string speedDefaultYString = toStringPrecision(speedDefaultY, 2);
-
-
-	//session timer settings
-	sSessionTimerEnabled = std::make_shared<bool>(false);
-	sSessionTimerX = std::make_shared<int>(0);
-	sSessionTimerY = std::make_shared<int>(0);
-
-	sSessionTimerColor = std::make_shared<LinearColor>();
-
-	float timerDefaultX = screenSize.X / 2.13;
-	float timerDefaultY = screenSize.Y / 108;
-
-	sSessionTimerXDefault = std::make_shared<float>(0.0f);
-	sSessionTimerYDefault = std::make_shared<float>(0.0f);
-
-	*sSessionTimerXDefault = timerDefaultX;
-	*sSessionTimerYDefault = timerDefaultY;
-
-	std::string timerDefaultXString = toStringPrecision(timerDefaultX, 2);
-	std::string timerDefaultYString = toStringPrecision(timerDefaultY, 2);
-
-	//text color settings
-	cGoodColor = std::make_shared<LinearColor>();
-	cAlrightColor = std::make_shared<LinearColor>();
-	cBadColor = std::make_shared<LinearColor>();
-
-
-
 
 	cvarManager->registerNotifier("FTTPlugin", [this](std::vector<std::string> args) {
 		firstTouchTrainer();
 		}, "", PERMISSION_ALL);
 
-	//osd cvar
+
+	//////////////////////////////////////////////////////////////////
+	////////////////////SPEED OSD SETTINGS////////////////////////////
+	//////////////////////////////////////////////////////////////////
+	bEnabled = std::make_shared<bool>(false);
+
 	cvarManager->registerCvar("FTT_Enable", "1", "Show First Touch Trainer", true, true, 0, true, 1).bindTo(bEnabled);
 
-	//text settings cvars
-	cvarManager->registerCvar("FTT_X_Position", speedDefaultXString, "Change Text X Position", true, true, 0, true, *bScreenSizeX).bindTo(tXPos);
-	cvarManager->registerCvar("FTT_Y_Position", speedDefaultYString, "Change Text Y Position", true, true, 0, true, *bScreenSizeY).bindTo(tYPos);
-	cvarManager->registerCvar("FTT_Text_Size", "3", "Change Text Size", true, true, 1, true, 10).bindTo(tTextSize);
-	cvarManager->registerCvar("FTT_Shadow", "1", "Enable text drop shadows", true, true, 0, true, 1).bindTo(tDropShadow);
+	/////////////////////////X SETTINGS////////////////////////////////
 
-	//color settings cvars
+	tXPos = std::make_shared<int>(0);
+	tXPosDefault = std::make_shared<float>(0.0f);
+
+	float speedDefaultX = screenSize.X / 2.18;
+	*tXPosDefault = speedDefaultX;
+	std::string speedDefaultXString = toStringPrecision(speedDefaultX, 2);
+
+	cvarManager->registerCvar("FTT_X_Position", speedDefaultXString, "Change Text X Position", true, true, 0, true, *bScreenSizeX).bindTo(tXPos);
+
+	/////////////////////////Y SETTINGS////////////////////////////////
+
+	tYPos = std::make_shared<int>(0);
+	tYPosDefault = std::make_shared<float>(0.0f);
+
+	float speedDefaultY = screenSize.Y / 1.05;
+	*tYPosDefault = speedDefaultY;
+	std::string speedDefaultYString = toStringPrecision(speedDefaultY, 2);
+
+	cvarManager->registerCvar("FTT_Y_Position", speedDefaultYString, "Change Text Y Position", true, true, 0, true, *bScreenSizeY).bindTo(tYPos);
+
+	////////////////////////COLOR SETTINGS//////////////////////////////
+
+	//GOOD//
+	cGoodColor = std::make_shared<LinearColor>();
+
 	cvarManager->registerCvar("FTT_Good_Range", "#00FF00", "Good Range Color", true).bindTo(cGoodColor);
+
+	//ALRIGHT//
+	cAlrightColor = std::make_shared<LinearColor>();
+
 	cvarManager->registerCvar("FTT_Alright_Range", "#FFFF00", "Alright Range Color", true).bindTo(cAlrightColor);
+
+	//BAD//
+	cBadColor = std::make_shared<LinearColor>();
+
 	cvarManager->registerCvar("FTT_Bad_Range", "#FF0000", "Bad Range Color", true).bindTo(cBadColor);
 
-	//session timer
+	/////////////////////GLOBAL TEXT SETTINGS/////////////////////////
+
+	//SIZE//
+	tTextSize = std::make_shared<int>(0);
+
+	cvarManager->registerCvar("FTT_Text_Size", "3", "Change Text Size", true, true, 1, true, 10).bindTo(tTextSize);
+
+	//DROP SHADOW//
+	tDropShadow = std::make_shared<bool>(false);
+
+	cvarManager->registerCvar("FTT_Shadow", "1", "Enable text drop shadows", true, true, 0, true, 1).bindTo(tDropShadow);
+
+	//////////////////////////////////////////////////////////////////
+	///////////////SESSION TIMER OSD SETTINGS/////////////////////////
+	//////////////////////////////////////////////////////////////////
+
+	sSessionTimerEnabled = std::make_shared<bool>(false);
+
 	cvarManager->registerCvar("FTT_SessionTimer", "0", "Turn on session timer to keep track of how long you've been in this training session", true, true, 0, true, 1).bindTo(sSessionTimerEnabled);
+
+	/////////////////////////X SETTINGS////////////////////////////////
+
+	sSessionTimerX = std::make_shared<int>(0);
+	sSessionTimerXDefault = std::make_shared<float>(0.0f);
+
+	float timerDefaultX = screenSize.X / 2.13;
+	*sSessionTimerXDefault = timerDefaultX;
+	std::string timerDefaultXString = toStringPrecision(timerDefaultX, 2);
+
 	cvarManager->registerCvar("FTT_SessionTimerX", timerDefaultXString, "Change session timer X position", true, true, 0, true, *bScreenSizeX).bindTo(sSessionTimerX);
+
+	/////////////////////////Y SETTINGS////////////////////////////////
+
+	sSessionTimerY = std::make_shared<int>(0);
+	sSessionTimerYDefault = std::make_shared<float>(0.0f);
+
+	float timerDefaultY = screenSize.Y / 108;
+	*sSessionTimerYDefault = timerDefaultY;
+	std::string timerDefaultYString = toStringPrecision(timerDefaultY, 2);
+
 	cvarManager->registerCvar("FTT_SessionTimerY", timerDefaultYString, "Change session timer Y position", true, true, 0, true, *bScreenSizeY).bindTo(sSessionTimerY);
+
+	///////////////////////COLOR SETTINGS//////////////////////////////
+
+	sSessionTimerColor = std::make_shared<LinearColor>();
+
 	cvarManager->registerCvar("FTT_SessionTimerColor", "#FFFFFF", "Change timer color", true).bindTo(sSessionTimerColor);
 
-	//call game every frame to render canvas
+
+	//////////////////////////RENDER///////////////////////////////////
+
 	gameWrapper->RegisterDrawable([this](CanvasWrapper canvas)
 		{
 			Render(canvas);
