@@ -14,6 +14,9 @@ class FirstTouchTrainer : public BakkesMod::Plugin::BakkesModPlugin
 	, public SettingsWindowBase
 {
 protected:
+
+	std::shared_ptr<LinearColor>gDrawnColor;
+
 	//osd enabled/disabled
 	std::shared_ptr<bool>bEnabled;
 
@@ -46,6 +49,7 @@ protected:
 	std::shared_ptr<float>sSessionTimerYDefault;
 
 	std::shared_ptr<bool>zTouchZoneEnabled;
+	std::shared_ptr<bool>zTouchZoneMatchColor;
 	std::shared_ptr<LinearColor>zTouchZoneColor;
 
 	std::vector<Vector> circles;
@@ -71,22 +75,4 @@ public:
 	int timerCheckConditions();
 
 	int touchZoneCheckConditions();
-};
-
-class Circle2D
-{
-public:
-	Vector2F location;
-	float radius;
-	int steps;
-	float lineThickness;
-
-	// CONSTRUCTORS
-	Circle2D();
-	Circle2D(Vector2F loc, float rad);
-	Circle2D(Vector2F loc, float rad, int step);
-	Circle2D(Vector2F loc, float rad, int step, float lineThicc);
-
-	// FUNCTIONS
-	void Draw(CanvasWrapper canvas) const;
 };

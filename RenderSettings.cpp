@@ -1,15 +1,6 @@
 #include "pch.h"
 #include "FirstTouchTrainer.h"
 #include "RenderingTools/RenderingTools.h"
-//#include "RenderingTools/Objects/Circle.h"
-//#include "RenderingTools/Objects/Circle2D.h"
-//#include "RenderingTools/Objects/Frustum.h"
-//#include "RenderingTools/Objects/Line.h"
-//#include "RenderingTools/Objects/Sphere.h"
-//#include "RenderingTools/Extra/WrapperStructsExtensions.h"
-//#include "RenderingTools/Extra/RenderingMath.h"
-//#include "RenderingTools/Extra/RenderingAssistant.h"
-//#include "RenderingTools/Extra/CanvasExtensions.h"
 
 void FirstTouchTrainer::RenderSettings()
 {
@@ -218,6 +209,14 @@ void FirstTouchTrainer::RenderSettings()
 				ImGui::SetTooltip("Reset the colors to the default value assigned to them");
 			}
 
+			bool touchZoneMatchEnabled = *zTouchZoneMatchColor;
+			if (ImGui::Checkbox("Enable/Disable Match Color", &touchZoneMatchEnabled)) {
+				*zTouchZoneMatchColor = touchZoneMatchEnabled;
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Enable/Disable Enable this to have the drawn circle match the color of the speed indicator within the ranges");
+			}
+
 			ImGui::TreePop();
 		}
 
@@ -237,13 +236,16 @@ void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas)
 
 		//set colors at certain velocity
 		if (-150.0f <= drawVelocity && drawVelocity <= 150.0f) {
-			canvas.SetColor(*cGoodColor);
+			*gDrawnColor = *cGoodColor;
+			canvas.SetColor(*gDrawnColor);
 		}
 		else if (-300.0f <= drawVelocity && drawVelocity <= 300.0f) {
-			canvas.SetColor(*cAlrightColor);
+			*gDrawnColor = *cAlrightColor;
+			canvas.SetColor(*gDrawnColor);
 		}
 		else {
-			canvas.SetColor(*cBadColor);
+			*gDrawnColor = *cBadColor;
+			canvas.SetColor(*gDrawnColor);
 		}
 
 		if (gameWrapper->GetbMetric()) {
@@ -252,6 +254,7 @@ void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas)
 		else {
 			canvas.DrawString(toStringPrecision(drawVelocity / 44.704f, 2) + " MPH", *tTextSize, *tTextSize, *tDropShadow);
 		}
+
 	}
 	return;
 }
@@ -310,6 +313,9 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		RT::Frustum frust{ canvas, camera };
 
 		canvas.SetColor(*zTouchZoneColor);
+		if (*zTouchZoneMatchColor) {
+			canvas.SetColor(*gDrawnColor);
+		}
 
 		Vector v = ball.GetLocation();
 		Rotator r(0, 0, 0);
@@ -317,9 +323,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		Vector2F carLocation2D = canvas.ProjectF(v);
 
 		float diff = (camera.GetLocation() - v).magnitude();
-		Quat car_rot = RotatorToQuat(r);
-
-		auto wheels = car.GetVehicleSim().GetWheels();
+		Quat ball_rot = RotatorToQuat(r);
 
 		float radius = 100.0f;
 		int thicc = 1;
@@ -327,38 +331,17 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		int steps = 32;
 
 		Quat upright_rot = RT::AngleAxisRotation(3.14159f / 2.0f, Vector{ 0.f, 0.f, 0.f });
-		for (auto wheel : wheels)
-		{
-			Vector sub(0.f, 0.f, 89.13f);
-			Vector loc = v;
-			loc = loc - sub;
+		Vector sub(0.f, 0.f, 89.13f);
+		Vector loc = v;
+		loc = loc - sub;
 
-			Quat turn_rot = RT::AngleAxisRotation(wheel.GetSteer2(), Vector{ 0.f, 0.f, 1.f });
-			Quat final_rot = car_rot * turn_rot * upright_rot;
+		Quat turn_rot = RT::AngleAxisRotation(0.0f, Vector{ 0.f, 0.f, 1.f });
+		Quat final_rot = ball_rot * turn_rot * upright_rot;
 
-			RT::Circle circ{ loc, final_rot, radius, thicc, pie, steps };
-
-			circ.Draw(canvas, frust);
-		}
+		RT::Circle circ{ loc, final_rot, radius, thicc, pie, steps };
+		
+		circ.Draw(canvas, frust);
 	}
-
-
-	/*Vector ballLocation = ball.GetLocation();
-
-	float ballX = ballLocation.X;
-	float ballY = ballLocation.Y;
-	float ballZ = ballLocation.Z;
-
-	Vector ballTrack(ballX, ballY, ballZ);
-
-	Vector2 projectCanvas = canvas.Project(ballTrack);
-
-	float radius = 1.0f;
-
-	RT::Circle2D2 circ(projectCanvas, radius, 16, 1);
-
-	canvas.SetColor(*zTouchZoneColor);
-	circ.Draw(canvas);*/
 
 	return;
 }

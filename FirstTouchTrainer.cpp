@@ -9,6 +9,8 @@ void FirstTouchTrainer::onLoad()
 {
 	_globalCvarManager = cvarManager;
 
+	gDrawnColor = std::make_shared<LinearColor>();
+
 	//////////////////////////////////////////////////////////////////
 	/////////////////GLOBAL SCREEN SIZE LIMIT/////////////////////////
 	//////////////////////////////////////////////////////////////////
@@ -124,8 +126,10 @@ void FirstTouchTrainer::onLoad()
 	//////////////////////////////////////////////////////////////////
 
 	zTouchZoneEnabled = std::make_shared<bool>(false);
+	zTouchZoneMatchColor = std::make_shared<bool>(false);
 
 	cvarManager->registerCvar("FTT_TouchZoneEnabled", "0", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
+	cvarManager->registerCvar("FTT_TouchZoneMatchSpeed", "0", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
 
 	///////////////////////COLOR SETTINGS//////////////////////////////
 
@@ -174,7 +178,7 @@ void FirstTouchTrainer::OnFreeplayLoad(std::string eventName)
 
 void FirstTouchTrainer::OnFreeplayDestroy(std::string eventName)
 {
-	/*	gameWrapper->UnregisterDrawables()*/;
+		/*gameWrapper->UnregisterDrawables();*/
 }
 
 std::tuple<float> FirstTouchTrainer::firstTouchTrainer()
