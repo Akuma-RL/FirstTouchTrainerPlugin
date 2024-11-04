@@ -172,13 +172,13 @@ void FirstTouchTrainer::OnFreeplayLoad(std::string eventName)
 	circles.clear();
 	cvarManager->log(std::string("OnFreeplayLoad") + eventName);
 	if (*zTouchZoneEnabled) {
-		gameWrapper->RegisterDrawable(std::bind(&FirstTouchTrainer::RenderFTT, this, std::placeholders::_1));
+		gameWrapper->RegisterDrawable(std::bind(&FirstTouchTrainer::RenderTouchZone, this, std::placeholders::_1));
 	}
 }
 
 void FirstTouchTrainer::OnFreeplayDestroy(std::string eventName)
 {
-		/*gameWrapper->UnregisterDrawables();*/
+		gameWrapper->UnregisterDrawables();
 }
 
 std::tuple<float> FirstTouchTrainer::firstTouchTrainer()
@@ -215,8 +215,7 @@ std::string FirstTouchTrainer::toStringPrecision(float InValue, int Precision)
 int FirstTouchTrainer::checkConditions()
 {
 	//check if OSD is enabled
-	if (!(*bEnabled)) { return 0; }
-
+	if (!*bEnabled && !*zTouchZoneEnabled) { return 0; }
 	//check if player is in online match
 	if (!gameWrapper->IsInGame()) { return 0; }
 

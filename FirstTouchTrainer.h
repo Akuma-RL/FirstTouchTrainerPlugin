@@ -64,6 +64,8 @@ public:
 
 	virtual void RenderSettings() override;
 
+	LinearColor CanvasColor();
+
 	void RenderFTT(CanvasWrapper canvas);
 	void RenderSessionTimer(CanvasWrapper canvas);
 	void RenderTouchZone(CanvasWrapper canvas);

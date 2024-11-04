@@ -224,29 +224,36 @@ void FirstTouchTrainer::RenderSettings()
 	return;
 }
 
+LinearColor FirstTouchTrainer::CanvasColor()
+{
+	LinearColor Colors;
+
+	float drawVelocity = std::get<0>(firstTouchTrainer());
+
+	//set colors at certain velocity
+	if (-150.0f <= drawVelocity && drawVelocity <= 150.0f) {
+		Colors = *cGoodColor;
+		return Colors;
+	}
+	else if (-300.0f <= drawVelocity && drawVelocity <= 300.0f) {
+		Colors = *cAlrightColor;
+		return Colors;
+	}
+	else {
+		Colors = *cBadColor;
+		return Colors;
+	}
+}
 
 void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas)
 {
+
 	if (checkConditions() == 1)
 	{
-
-		canvas.SetPosition(Vector2{ *tXPos, *tYPos });
-
 		float drawVelocity = std::get<0>(firstTouchTrainer());
-
-		//set colors at certain velocity
-		if (-150.0f <= drawVelocity && drawVelocity <= 150.0f) {
-			*gDrawnColor = *cGoodColor;
-			canvas.SetColor(*gDrawnColor);
-		}
-		else if (-300.0f <= drawVelocity && drawVelocity <= 300.0f) {
-			*gDrawnColor = *cAlrightColor;
-			canvas.SetColor(*gDrawnColor);
-		}
-		else {
-			*gDrawnColor = *cBadColor;
-			canvas.SetColor(*gDrawnColor);
-		}
+		
+		canvas.SetColor(CanvasColor());
+		canvas.SetPosition(Vector2{ *tXPos, *tYPos });
 
 		if (gameWrapper->GetbMetric()) {
 			canvas.DrawString(toStringPrecision(drawVelocity * .036f, 2) + " KPH", *tTextSize, *tTextSize, *tDropShadow);
@@ -314,7 +321,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		canvas.SetColor(*zTouchZoneColor);
 		if (*zTouchZoneMatchColor) {
-			canvas.SetColor(*gDrawnColor);
+			canvas.SetColor(CanvasColor());
 		}
 
 		Vector v = ball.GetLocation();
