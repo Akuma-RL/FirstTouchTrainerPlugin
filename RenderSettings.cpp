@@ -251,7 +251,7 @@ void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas)
 	if (checkConditions() == 1)
 	{
 		float drawVelocity = std::get<0>(firstTouchTrainer());
-		
+
 		canvas.SetColor(CanvasColor());
 		canvas.SetPosition(Vector2{ *tXPos, *tYPos });
 
@@ -306,48 +306,53 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 {
 	if (touchZoneCheckConditions() == 1)
 	{
-		ServerWrapper server = gameWrapper->GetCurrentGameState();
+		if (IsBallInAir() == 1) {
 
-		CameraWrapper camera = gameWrapper->GetCamera();
-		if (camera.IsNull()) { return; }
+			ServerWrapper server = gameWrapper->GetCurrentGameState();
 
-		BallWrapper ball = server.GetBall();
-		if (ball.IsNull()) { return; }
+			CameraWrapper camera = gameWrapper->GetCamera();
+			if (camera.IsNull()) { return; }
 
-		CarWrapper car = gameWrapper->GetLocalCar();
-		if (car.IsNull()) { return; }
+			BallWrapper ball = server.GetBall();
+			if (ball.IsNull()) { return; }
 
-		RT::Frustum frust{ canvas, camera };
+			CarWrapper car = gameWrapper->GetLocalCar();
+			if (car.IsNull()) { return; }
 
-		canvas.SetColor(*zTouchZoneColor);
-		if (*zTouchZoneMatchColor) {
-			canvas.SetColor(CanvasColor());
+			RT::Frustum frust{ canvas, camera };
+
+			canvas.SetColor(*zTouchZoneColor);
+			if (*zTouchZoneMatchColor) {
+				canvas.SetColor(CanvasColor());
+			}
+
+
+			Vector v = ball.GetLocation();
+			Rotator r = ball.GetRotation();
+
+			float ballX = v.X;
+			float ballY = v.Y;
+			float ballZ = v.Z;
+			
+			Vector Circle_v(ballX, ballY, ballZ + 89.13);
+
+			float diff = (camera.GetLocation() - v).magnitude();
+			Quat ball_rot = RotatorToQuat(r);
+			if (diff < 1000.f)
+				RT::Sphere(v, ball_rot, 2.f).Draw(canvas, frust, camera.GetLocation(), 18);
+
+			float radius = 50.0f;
+			
+			Vector loc = v - Circle_v;
+			loc = RotateVectorWithQuat(loc, ball_rot);
+			loc = loc + v;
+			
+			Quat final_rot = ball_rot;
+
+			RT::Circle circ{ loc, final_rot, radius };
+
+			circ.Draw(canvas, frust);
 		}
-
-		Vector v = ball.GetLocation();
-		Rotator r(0, 0, 0);
-
-		Vector2F carLocation2D = canvas.ProjectF(v);
-
-		float diff = (camera.GetLocation() - v).magnitude();
-		Quat ball_rot = RotatorToQuat(r);
-
-		float radius = 100.0f;
-		int thicc = 1;
-		float pie = 1.0f;
-		int steps = 32;
-
-		Quat upright_rot = RT::AngleAxisRotation(3.14159f / 2.0f, Vector{ 0.f, 0.f, 0.f });
-		Vector sub(0.f, 0.f, 89.13f);
-		Vector loc = v;
-		loc = loc - sub;
-
-		Quat turn_rot = RT::AngleAxisRotation(0.0f, Vector{ 0.f, 0.f, 1.f });
-		Quat final_rot = ball_rot * turn_rot * upright_rot;
-
-		RT::Circle circ{ loc, final_rot, radius, thicc, pie, steps };
-		
-		circ.Draw(canvas, frust);
 	}
 
 	return;

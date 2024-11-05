@@ -8,7 +8,7 @@
 #include <vector>
 
 RT::Circle::Circle()
-	: location(Vector(0,0,0)), orientation(Quat(1,0,0,0)), radius(100), lineThickness(1), piePercentage(1), steps(16) {}
+	: location(Vector(0,0,0)), orientation(Quat(1,0,0,0)), radius(100), lineThickness(1), piePercentage(1), steps(32) {}
 
 RT::Circle::Circle(Vector loc, Quat rot, float rad)
 	: Circle() { location = loc; orientation = rot; radius = rad; }

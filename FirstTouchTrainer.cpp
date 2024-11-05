@@ -126,10 +126,12 @@ void FirstTouchTrainer::onLoad()
 	//////////////////////////////////////////////////////////////////
 
 	zTouchZoneEnabled = std::make_shared<bool>(false);
+	zTouchZoneVelRotateEnabled = std::make_shared<bool>(false);
 	zTouchZoneMatchColor = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_TouchZoneEnabled", "0", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
-	cvarManager->registerCvar("FTT_TouchZoneMatchSpeed", "0", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
+	cvarManager->registerCvar("FTT_TouchZoneEnabled", "1", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
+	cvarManager->registerCvar("FTT_TochZoneRotateWVel", "0", "Enable/Disable Rotation with balls given velocity", true, true, 0, true, 1).bindTo(zTouchZoneVelRotateEnabled);
+	cvarManager->registerCvar("FTT_TouchZoneMatchSpeed", "1", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
 
 	///////////////////////COLOR SETTINGS//////////////////////////////
 
@@ -178,30 +180,39 @@ void FirstTouchTrainer::OnFreeplayLoad(std::string eventName)
 
 void FirstTouchTrainer::OnFreeplayDestroy(std::string eventName)
 {
-		gameWrapper->UnregisterDrawables();
+	gameWrapper->UnregisterDrawables();
 }
 
-std::tuple<float> FirstTouchTrainer::firstTouchTrainer()
+std::tuple<float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
 {
-	if (checkConditions() == 0) { return 0.0f; }
+	if (checkConditions() == 0) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
 
 	//create server wrapper to get ball info
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
-	if (server.IsNull()) { return 0.0f; }
+	if (server.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
 
 	//get ball information and assign to ball
 	BallWrapper ball = server.GetBall();
-	if (ball.IsNull()) { return 0.0f; }
+	if (ball.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
 
 	//get car information and assign to car
 	CarWrapper car = gameWrapper->GetLocalCar();
-	if (car.IsNull()) { return 0.0f; }
+	if (car.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
+
+	Vector ballXYZ = ball.GetCurrentRBLocation();
+	Vector carXYZ = car.GetVelocity().magnitude();
+
+	float ballX = ballXYZ.X;
+	float ballY = ballXYZ.Y;
+	float ballZ = ballXYZ.Z;
 
 	//make float and get the ball and vehicle magnitude and subtract one from the other
 	float velocityDifference = car.GetVelocity().magnitude() - ball.GetVelocity().magnitude();
+	
+
 
 	//return the outcome of previous line
-	return { velocityDifference };
+	return { std::make_tuple(velocityDifference, ballX, ballY, ballZ) };
 }
 
 //function to transfer string to float with an input level of precision
@@ -242,4 +253,15 @@ int FirstTouchTrainer::touchZoneCheckConditions()
 
 	return 1;
 }
+
+float FirstTouchTrainer::IsBallInAir()
+{
+	if (!*zTouchZoneVelRotateEnabled && !*zTouchZoneEnabled) { return 0; }
+	
+	float ballZ = std::get<3>(firstTouchTrainer());
+
+	if (ballZ <= 0.0f) { return 0; }
+	return 1;
+}
+
 void FirstTouchTrainer::onUnload() { }
