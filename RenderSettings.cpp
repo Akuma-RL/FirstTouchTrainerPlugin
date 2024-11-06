@@ -6,29 +6,42 @@ void FirstTouchTrainer::RenderSettings()
 {
 	ImGui::TextUnformatted("Plugin to see the speed differential between your car, and the ball!");
 
-	//enable plugin checkbox
-	bool pluginEnabled = *bEnabled;
-	if (ImGui::Checkbox("Enable/Disable OSD", &pluginEnabled)) {
+	static bool pluginEnabled = *bEnabled;
+	static bool shadowEnabled = *tDropShadow;
+	static bool sessionTimerEnabled = *sSessionTimerEnabled;
+	static bool touchZoneEnabled = *zTouchZoneEnabled;
+
+	/*ImGui::Separator;*/
+	if (ImGui::Checkbox("Enable Speed Differential", &pluginEnabled)) {
 		*bEnabled = pluginEnabled;
 	}
 	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Enable/Disable On Screen Display");
+		ImGui::SetTooltip("Turn on speed differntial on screen display");
 	}
+	if (ImGui::Checkbox("Enable SessionTimer", &sessionTimerEnabled)) {
+		*sSessionTimerEnabled = sessionTimerEnabled;
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Turn on sesison timer on screen display");
+	}
+	if (ImGui::Checkbox("Enable Touch Zone", &touchZoneEnabled)) {
+		*zTouchZoneEnabled = touchZoneEnabled;
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Turn on ball touch zone");
+	}
+	if (ImGui::Checkbox("Enable Drop Shadows", &shadowEnabled)) {
+		*tDropShadow = shadowEnabled;
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Turn drop shadows on for all text");
+	}
+	
 	if (pluginEnabled)
 	{
-		//checkbox for drop shadows
-		bool shadowEnabled = *tDropShadow;
-		if (ImGui::Checkbox("Enable/Disable Drop Shadow", &shadowEnabled)) {
-			*tDropShadow = shadowEnabled;
-		}
-		if (ImGui::IsItemHovered()) {
-			ImGui::SetTooltip("Enable/Disable Text Drop Shadows");
-		}
 
-		if (ImGui::TreeNode("Speed Display Settings"))
+		if (ImGui::CollapsingHeader("Speed Display Settings"))
 		{
-			static bool closable_group = true;
-
 			//text size slider
 			ImGui::TextUnformatted("Text Size Slider");
 
@@ -111,28 +124,15 @@ void FirstTouchTrainer::RenderSettings()
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Reset the colors to the default value assigned to them");
 			}
-			ImGui::TreePop();
 		}
 	}
 
 	ImGui::TextUnformatted("\n");
 
-	//enable session timer
-	bool sessionTimerEnabled = *sSessionTimerEnabled;
-	if (ImGui::Checkbox("Enable/Disable Session Timer", &sessionTimerEnabled)) {
-		*sSessionTimerEnabled = sessionTimerEnabled;
-	}
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Enable/Disable Session Timer");
-	}
 	if (sessionTimerEnabled)
 	{
-		if (ImGui::TreeNode("Session Timer Display Settings"))
+		if (ImGui::CollapsingHeader("Session Timer Display Settings"))
 		{
-			static bool closable_group = true;
-
-
-
 			float sessionXPos = *sSessionTimerX;
 			if (ImGui::SliderFloat("Horizontal Position##2", &sessionXPos, 0.0f, *bScreenSizeX)) {
 				*sSessionTimerX = sessionXPos;
@@ -171,27 +171,17 @@ void FirstTouchTrainer::RenderSettings()
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Reset the colors to the default value assigned to them");
 			}
-
-			ImGui::TreePop();
 		}
 
 	}
 
 	ImGui::TextUnformatted("\n");
 
-	//enable touch zone
-	bool touchZoneEnabled = *zTouchZoneEnabled;
-	if (ImGui::Checkbox("Enable/Disable Touch Zone", &touchZoneEnabled)) {
-		*zTouchZoneEnabled = touchZoneEnabled;
-	}
-	if (ImGui::IsItemHovered()) {
-		ImGui::SetTooltip("Enable/Disable Touch zone");
-	}
 	if (touchZoneEnabled)
 	{
-		if (ImGui::TreeNode("Touch Zone Display Settings"))
+		if (ImGui::CollapsingHeader("Touch Zone Display Settings"))
 		{
-			static bool closable_group = true;
+			bool touchZoneMatchEnabled = *zTouchZoneMatchColor;
 
 			//Getting color data from user for the session timer
 			LinearColor touchZoneColor = *zTouchZoneColor / 255;
@@ -204,20 +194,18 @@ void FirstTouchTrainer::RenderSettings()
 			LinearColor defaultTouchZoneColor(1, 0, 0, 1);
 			if (ImGui::Button("Default Colors##3")) {
 				*zTouchZoneColor = defaultTouchZoneColor * 255;
+				*zTouchZoneMatchColor = false;
 			}
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Reset the colors to the default value assigned to them");
 			}
 
-			bool touchZoneMatchEnabled = *zTouchZoneMatchColor;
 			if (ImGui::Checkbox("Enable/Disable Match Color", &touchZoneMatchEnabled)) {
 				*zTouchZoneMatchColor = touchZoneMatchEnabled;
 			}
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Enable/Disable Enable this to have the drawn circle match the color of the speed indicator within the ranges");
 			}
-
-			ImGui::TreePop();
 		}
 
 	}
@@ -306,50 +294,49 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 {
 	if (touchZoneCheckConditions() == 1)
 	{
+		ServerWrapper server = gameWrapper->GetCurrentGameState();
+
+		CameraWrapper camera = gameWrapper->GetCamera();
+		if (camera.IsNull()) { return; }
+
+		BallWrapper ball = server.GetBall();
+		if (ball.IsNull()) { return; }
+
+		CarWrapper car = gameWrapper->GetLocalCar();
+		if (car.IsNull()) { return; }
+
+		RT::Frustum frust{ canvas, camera };
+
+		Vector v = ball.GetLocation();
+		Rotator r = ball.GetRotation();
+		Vector m = v.magnitude();
+
+		Vector ballPosLerp = LinearFieldInterp(v.X, v.Y, v.Z);
+		Vector ballMagLerp = BallVelocityInterp(m.X, m.Y, m.Z);
+
+		Vector Circle_v(v.X, v.Y, v.Z + 89.13);
+		Quat no_rot(0.f, 1.f, 0.f, 0.f);
+		Quat ball_rot = RotatorToQuat(r);
+		Quat final_rot = ball_rot;
+
+		canvas.SetColor(*zTouchZoneColor);
+		if (*zTouchZoneMatchColor) {
+			canvas.SetColor(CanvasColor());
+		}
+
 		if (IsBallInAir() == 1) {
 
-			ServerWrapper server = gameWrapper->GetCurrentGameState();
-
-			CameraWrapper camera = gameWrapper->GetCamera();
-			if (camera.IsNull()) { return; }
-
-			BallWrapper ball = server.GetBall();
-			if (ball.IsNull()) { return; }
-
-			CarWrapper car = gameWrapper->GetLocalCar();
-			if (car.IsNull()) { return; }
-
-			RT::Frustum frust{ canvas, camera };
-
-			canvas.SetColor(*zTouchZoneColor);
-			if (*zTouchZoneMatchColor) {
-				canvas.SetColor(CanvasColor());
-			}
-
-
-			Vector v = ball.GetLocation();
-			Rotator r = ball.GetRotation();
-
-			float ballX = v.X;
-			float ballY = v.Y;
-			float ballZ = v.Z;
-			
-			Vector Circle_v(ballX, ballY, ballZ + 89.13);
-
 			float diff = (camera.GetLocation() - v).magnitude();
-			Quat ball_rot = RotatorToQuat(r);
 			if (diff < 1000.f)
 				RT::Sphere(v, ball_rot, 2.f).Draw(canvas, frust, camera.GetLocation(), 18);
 
 			float radius = 50.0f;
-			
-			Vector loc = v - Circle_v;
-			loc = RotateVectorWithQuat(loc, ball_rot);
-			loc = loc + v;
-			
-			Quat final_rot = ball_rot;
 
-			RT::Circle circ{ loc, final_rot, radius };
+			Vector loc = v - Circle_v;
+	/*		loc = RotateVectorWithQuat(loc, ball_rot);*/
+			loc = loc + v;
+
+			RT::Circle circ{ loc, no_rot, radius };
 
 			circ.Draw(canvas, frust);
 		}

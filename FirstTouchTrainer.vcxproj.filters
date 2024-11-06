@@ -138,6 +138,9 @@
     <ClCompile Include="RenderingTools\Objects\VisualCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Field.cpp">
+      <Filter>Plugin\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imgui_rangeslider.h">
@@ -253,6 +256,9 @@
     </ClInclude>
     <ClInclude Include="RenderingTools\RenderingTools.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Field.h">
+      <Filter>Plugin\header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

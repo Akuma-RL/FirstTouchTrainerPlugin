@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "FirstTouchTrainer.h"
+#include <cmath>
 
 BAKKESMOD_PLUGIN(FirstTouchTrainer, "First Touch Trainer", plugin_version, PLUGINTYPE_FREEPLAY)
 
@@ -165,7 +166,6 @@ void FirstTouchTrainer::onLoad()
 			{
 				RenderTouchZone(canvas);
 			}
-
 		});
 }
 
@@ -208,7 +208,7 @@ std::tuple<float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
 
 	//make float and get the ball and vehicle magnitude and subtract one from the other
 	float velocityDifference = car.GetVelocity().magnitude() - ball.GetVelocity().magnitude();
-	
+
 
 
 	//return the outcome of previous line
@@ -257,11 +257,52 @@ int FirstTouchTrainer::touchZoneCheckConditions()
 float FirstTouchTrainer::IsBallInAir()
 {
 	if (!*zTouchZoneVelRotateEnabled && !*zTouchZoneEnabled) { return 0; }
-	
+
 	float ballZ = std::get<3>(firstTouchTrainer());
 
-	if (ballZ <= 0.0f) { return 0; }
+	if (ballZ <= 400.0f) { return 0; }
 	return 1;
+}
+
+Vector FirstTouchTrainer::LinearFieldInterp(float ballX, float ballY, float ballZ)
+{
+		int Field_Xp = 4096;
+		int Field_Xn = -4096;
+
+		int Field_Yp = 5120;
+		int Field_Yn = -5120;
+		
+		int Field_Zf = 0.f;
+		int Field_Zc = 2044.f;
+
+		float X_Lerp = std::lerp(Field_Xn, Field_Xp, ballX);
+		float Y_Lerp = std::lerp(Field_Yn, Field_Yp, ballY);
+		float Z_Lerp = std::lerp(Field_Zf, Field_Zc, ballZ);
+
+		Vector Ball_Lerp(X_Lerp, Y_Lerp, Z_Lerp);
+		return{ Ball_Lerp };
+}
+
+Vector FirstTouchTrainer::BallVelocityInterp(float magX, float magY, float magZ)
+{
+	float minVel = 0.f;
+	float maxVel = 1250.f;
+
+	if (magX < minVel) { magX = minVel; }
+	if (magY < minVel) { magY = minVel; }
+	if (magZ < minVel) { magZ = minVel; }
+
+	if (magX > maxVel) { magX = maxVel; }
+	if (magY > maxVel) { magY = maxVel; }
+	if (magZ > maxVel) { magZ = maxVel; }
+
+	float magX_Lerp = std::lerp(minVel, maxVel, magX);
+	float magY_Lerp = std::lerp(minVel, maxVel, magY);
+	float magZ_Lerp = std::lerp(minVel, maxVel, magZ);
+
+	Vector BallVel_Lerp(magX_Lerp, magY_Lerp, magZ_Lerp);
+
+	return{ BallVel_Lerp };
 }
 
 void FirstTouchTrainer::onUnload() { }
