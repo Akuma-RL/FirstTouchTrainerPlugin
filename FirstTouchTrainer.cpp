@@ -129,8 +129,10 @@ void FirstTouchTrainer::onLoad()
 	zTouchZoneEnabled = std::make_shared<bool>(false);
 	zTouchZoneVelRotateEnabled = std::make_shared<bool>(false);
 	zTouchZoneMatchColor = std::make_shared<bool>(false);
+	zTouchZoneSphereEnabled = std::make_shared<bool>(false);
 
 	cvarManager->registerCvar("FTT_TouchZoneEnabled", "1", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
+	cvarManager->registerCvar("FTT_TouchZoneSphereEnabled", "0", "Enable/Disable Touch Zone Sphere", true, true, 0, true, 1).bindTo(zTouchZoneSphereEnabled);
 	cvarManager->registerCvar("FTT_TochZoneRotateWVel", "0", "Enable/Disable Rotation with balls given velocity", true, true, 0, true, 1).bindTo(zTouchZoneVelRotateEnabled);
 	cvarManager->registerCvar("FTT_TouchZoneMatchSpeed", "1", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
 
@@ -262,47 +264,6 @@ float FirstTouchTrainer::IsBallInAir()
 
 	if (ballZ <= 400.0f) { return 0; }
 	return 1;
-}
-
-Vector FirstTouchTrainer::LinearFieldInterp(float ballX, float ballY, float ballZ)
-{
-		int Field_Xp = 4096;
-		int Field_Xn = -4096;
-
-		int Field_Yp = 5120;
-		int Field_Yn = -5120;
-		
-		int Field_Zf = 0.f;
-		int Field_Zc = 2044.f;
-
-		float X_Lerp = std::lerp(Field_Xn, Field_Xp, ballX);
-		float Y_Lerp = std::lerp(Field_Yn, Field_Yp, ballY);
-		float Z_Lerp = std::lerp(Field_Zf, Field_Zc, ballZ);
-
-		Vector Ball_Lerp(X_Lerp, Y_Lerp, Z_Lerp);
-		return{ Ball_Lerp };
-}
-
-Vector FirstTouchTrainer::BallVelocityInterp(float magX, float magY, float magZ)
-{
-	float minVel = 0.f;
-	float maxVel = 1250.f;
-
-	if (magX < minVel) { magX = minVel; }
-	if (magY < minVel) { magY = minVel; }
-	if (magZ < minVel) { magZ = minVel; }
-
-	if (magX > maxVel) { magX = maxVel; }
-	if (magY > maxVel) { magY = maxVel; }
-	if (magZ > maxVel) { magZ = maxVel; }
-
-	float magX_Lerp = std::lerp(minVel, maxVel, magX);
-	float magY_Lerp = std::lerp(minVel, maxVel, magY);
-	float magZ_Lerp = std::lerp(minVel, maxVel, magZ);
-
-	Vector BallVel_Lerp(magX_Lerp, magY_Lerp, magZ_Lerp);
-
-	return{ BallVel_Lerp };
 }
 
 void FirstTouchTrainer::onUnload() { }

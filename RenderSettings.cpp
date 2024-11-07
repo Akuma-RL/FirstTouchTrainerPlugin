@@ -36,7 +36,7 @@ void FirstTouchTrainer::RenderSettings()
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("Turn drop shadows on for all text");
 	}
-	
+
 	if (pluginEnabled)
 	{
 
@@ -182,11 +182,19 @@ void FirstTouchTrainer::RenderSettings()
 		if (ImGui::CollapsingHeader("Touch Zone Display Settings"))
 		{
 			bool touchZoneMatchEnabled = *zTouchZoneMatchColor;
+			bool centerSphereEnabled = *zTouchZoneSphereEnabled;
 
+			if (ImGui::Checkbox("Enable 3D Sphere", &centerSphereEnabled)) {
+				*zTouchZoneSphereEnabled = centerSphereEnabled;
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Enables/Disables a 3D sphere in the center of the ball");
+			}
 			//Getting color data from user for the session timer
 			LinearColor touchZoneColor = *zTouchZoneColor / 255;
 			if (ImGui::ColorEdit4("Touch Zone Color", &touchZoneColor.R)) {
 				*zTouchZoneColor = touchZoneColor * 255;
+				if (touchZoneMatchEnabled) { *zTouchZoneMatchColor = false; }
 			}
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Set color of the touch zone");
@@ -207,7 +215,6 @@ void FirstTouchTrainer::RenderSettings()
 				ImGui::SetTooltip("Enable/Disable Enable this to have the drawn circle match the color of the speed indicator within the ranges");
 			}
 		}
-
 	}
 	return;
 }
@@ -309,15 +316,13 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		Vector v = ball.GetLocation();
 		Rotator r = ball.GetRotation();
-		Vector m = v.magnitude();
-
-		Vector ballPosLerp = LinearFieldInterp(v.X, v.Y, v.Z);
-		Vector ballMagLerp = BallVelocityInterp(m.X, m.Y, m.Z);
 
 		Vector Circle_v(v.X, v.Y, v.Z + 89.13);
 		Quat no_rot(0.f, 1.f, 0.f, 0.f);
 		Quat ball_rot = RotatorToQuat(r);
-		Quat final_rot = ball_rot;
+
+		float diff = (camera.GetLocation() - v).magnitude();
+
 
 		canvas.SetColor(*zTouchZoneColor);
 		if (*zTouchZoneMatchColor) {
@@ -326,14 +331,13 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		if (IsBallInAir() == 1) {
 
-			float diff = (camera.GetLocation() - v).magnitude();
-			if (diff < 1000.f)
+			if (diff < 1000.f && *zTouchZoneSphereEnabled) {
 				RT::Sphere(v, ball_rot, 2.f).Draw(canvas, frust, camera.GetLocation(), 18);
+			}
 
 			float radius = 50.0f;
 
 			Vector loc = v - Circle_v;
-	/*		loc = RotateVectorWithQuat(loc, ball_rot);*/
 			loc = loc + v;
 
 			RT::Circle circ{ loc, no_rot, radius };

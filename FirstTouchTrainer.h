@@ -51,8 +51,11 @@ protected:
 	std::shared_ptr<bool>zTouchZoneEnabled;
 	std::shared_ptr<bool>zTouchZoneMatchColor;
 	std::shared_ptr<bool>zTouchZoneVelRotateEnabled;
-	std::shared_ptr<LinearColor>zTouchZoneColor;
+	std::shared_ptr<bool>zTouchZoneSphereEnabled;
 	std::shared_ptr<bool>FieldBoxEnabled;
+
+	std::shared_ptr<LinearColor>zTouchZoneColor;
+
 	std::vector<Vector> circles;
 
 
@@ -71,10 +74,6 @@ public:
 	void RenderSessionTimer(CanvasWrapper canvas);
 	void RenderTouchZone(CanvasWrapper canvas);
 	std::tuple<float, float, float, float> firstTouchTrainer();
-	Vector LinearFieldInterp(float ballX, float ballY, float ballZ);
-	Vector BallVelocityInterp(float magX, float magY, float magZ);
-
-
 
 	int checkConditions();
 	std::string toStringPrecision(float InValue, int Precision);
