@@ -15,72 +15,74 @@ class FirstTouchTrainer : public BakkesMod::Plugin::BakkesModPlugin
 {
 protected:
 
-	std::shared_ptr<LinearColor>gDrawnColor;
-
-	//osd enabled/disabled
+	////////////////////////////////////////////
+	//////////////////CVARS/////////////////////
+	////////////////////////////////////////////
+	
+	//ENABLE FEATURES
 	std::shared_ptr<bool>bEnabled;
+	std::shared_ptr<bool>sSessionTimerEnabled;
+	std::shared_ptr<bool>zTouchZoneEnabled;
 
-	//global screen size
+	//GET SCREEN SIZE
 	std::shared_ptr<float>bScreenSizeX;
 	std::shared_ptr<float>bScreenSizeY;
 
-	//text settings
+	//FTT SETTINGS
 	std::shared_ptr<int>tXPos;
 	std::shared_ptr<int>tYPos;
 	std::shared_ptr<int>tTextSize;
 	std::shared_ptr<bool>tDropShadow;
-
+	//FTT DEFAULT SETTINGS
 	std::shared_ptr<float>tXPosDefault;
 	std::shared_ptr<float>tYPosDefault;
-
-	//text color settings
+	//FTT COLOR SETTINGS
 	std::shared_ptr<LinearColor>cGoodColor;
 	std::shared_ptr<LinearColor>cAlrightColor;
 	std::shared_ptr<LinearColor>cBadColor;
 
-	//session enabled
-	std::shared_ptr<bool>sSessionTimerEnabled;
+	//SESSION TIMER SETTINGS
 	std::shared_ptr<int>sSessionTimerX;
 	std::shared_ptr<int>sSessionTimerY;
-	std::shared_ptr<LinearColor>sSessionTimerColor;
-
-
+	//SESSION TIMER DEFAULTS
 	std::shared_ptr<float>sSessionTimerXDefault;
 	std::shared_ptr<float>sSessionTimerYDefault;
+	//SESSION TIMER COLOR
+	std::shared_ptr<LinearColor>sSessionTimerColor;
 
-	std::shared_ptr<bool>zTouchZoneEnabled;
-	std::shared_ptr<bool>zTouchZoneMatchColor;
-	std::shared_ptr<bool>zTouchZoneVelRotateEnabled;
+	//TOUCH ZONE SETTINGS
 	std::shared_ptr<bool>zTouchZoneSphereEnabled;
-	std::shared_ptr<bool>FieldBoxEnabled;
-
+	std::shared_ptr<bool>zTouchZoneMatchColor;
+	//TOUCH ZONE COLOR
 	std::shared_ptr<LinearColor>zTouchZoneColor;
+
+	//GET FTT DRAWN COLOR
+	std::shared_ptr<LinearColor>gDrawnColor;
+	////////////////////////////////////////////
 
 	std::vector<Vector> circles;
 
-
 public:
+
 	void onLoad() override;
 	void onUnload() override;
 
 	void OnFreeplayLoad(std::string eventName);
 	void OnFreeplayDestroy(std::string eventName);
+	std::tuple<float, float, float, float> firstTouchTrainer();
 
 	virtual void RenderSettings() override;
-
-	LinearColor CanvasColor();
 
 	void RenderFTT(CanvasWrapper canvas);
 	void RenderSessionTimer(CanvasWrapper canvas);
 	void RenderTouchZone(CanvasWrapper canvas);
-	std::tuple<float, float, float, float> firstTouchTrainer();
 
+	LinearColor CanvasColor();
+	
 	int checkConditions();
-	std::string toStringPrecision(float InValue, int Precision);
-
 	int timerCheckConditions();
-
 	int touchZoneCheckConditions();
-
 	float IsBallInAir();
+
+	std::string toStringPrecision(float InValue, int Precision);
 };

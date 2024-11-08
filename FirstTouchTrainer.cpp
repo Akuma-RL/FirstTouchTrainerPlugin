@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "FirstTouchTrainer.h"
-#include <cmath>
 
 BAKKESMOD_PLUGIN(FirstTouchTrainer, "First Touch Trainer", plugin_version, PLUGINTYPE_FREEPLAY)
 
@@ -127,14 +126,12 @@ void FirstTouchTrainer::onLoad()
 	//////////////////////////////////////////////////////////////////
 
 	zTouchZoneEnabled = std::make_shared<bool>(false);
-	zTouchZoneVelRotateEnabled = std::make_shared<bool>(false);
-	zTouchZoneMatchColor = std::make_shared<bool>(false);
 	zTouchZoneSphereEnabled = std::make_shared<bool>(false);
+	zTouchZoneMatchColor = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_TouchZoneEnabled", "1", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
+	cvarManager->registerCvar("FTT_TouchZoneEnabled", "0", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
 	cvarManager->registerCvar("FTT_TouchZoneSphereEnabled", "0", "Enable/Disable Touch Zone Sphere", true, true, 0, true, 1).bindTo(zTouchZoneSphereEnabled);
-	cvarManager->registerCvar("FTT_TochZoneRotateWVel", "0", "Enable/Disable Rotation with balls given velocity", true, true, 0, true, 1).bindTo(zTouchZoneVelRotateEnabled);
-	cvarManager->registerCvar("FTT_TouchZoneMatchSpeed", "1", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
+	cvarManager->registerCvar("FTT_TouchZoneMatchSpeed", "0", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
 
 	///////////////////////COLOR SETTINGS//////////////////////////////
 
@@ -258,7 +255,7 @@ int FirstTouchTrainer::touchZoneCheckConditions()
 
 float FirstTouchTrainer::IsBallInAir()
 {
-	if (!*zTouchZoneVelRotateEnabled && !*zTouchZoneEnabled) { return 0; }
+	if (!*zTouchZoneEnabled) { return 0; }
 
 	float ballZ = std::get<3>(firstTouchTrainer());
 

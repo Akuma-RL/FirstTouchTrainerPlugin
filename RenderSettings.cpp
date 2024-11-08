@@ -302,6 +302,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 	if (touchZoneCheckConditions() == 1)
 	{
 		ServerWrapper server = gameWrapper->GetCurrentGameState();
+		if (server.IsNull()) { return; }
 
 		CameraWrapper camera = gameWrapper->GetCamera();
 		if (camera.IsNull()) { return; }
