@@ -170,16 +170,16 @@ void FirstTouchTrainer::onLoad()
 
 void FirstTouchTrainer::OnFreeplayLoad(std::string eventName)
 {
-	circles.clear();
-	cvarManager->log(std::string("OnFreeplayLoad") + eventName);
-	if (*zTouchZoneEnabled) {
-		gameWrapper->RegisterDrawable(std::bind(&FirstTouchTrainer::RenderTouchZone, this, std::placeholders::_1));
-	}
+	//circles.clear();
+	//cvarManager->log(std::string("OnFreeplayLoad") + eventName);
+	//if (*zTouchZoneEnabled) {
+	//	gameWrapper->RegisterDrawable(std::bind(&FirstTouchTrainer::RenderTouchZone, this, std::placeholders::_1));
+	//}
 }
 
 void FirstTouchTrainer::OnFreeplayDestroy(std::string eventName)
 {
-	gameWrapper->UnregisterDrawables();
+	//gameWrapper->UnregisterDrawables();
 }
 
 std::tuple<float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
@@ -207,9 +207,7 @@ std::tuple<float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
 
 	//make float and get the ball and vehicle magnitude and subtract one from the other
 	float velocityDifference = car.GetVelocity().magnitude() - ball.GetVelocity().magnitude();
-
-
-
+	if (-3 <= velocityDifference && velocityDifference <= 3) { velocityDifference = 0; }
 	//return the outcome of previous line
 	return { std::make_tuple(velocityDifference, ballX, ballY, ballZ) };
 }
@@ -225,7 +223,9 @@ std::string FirstTouchTrainer::toStringPrecision(float InValue, int Precision)
 int FirstTouchTrainer::checkConditions()
 {
 	//check if OSD is enabled
-	if (!*bEnabled && !*zTouchZoneEnabled) { return 0; }
+	if (!*bEnabled) {
+		if (!*zTouchZoneEnabled) { return 0; }
+	}
 	//check if player is in online match
 	if (!gameWrapper->IsInGame()) { return 0; }
 

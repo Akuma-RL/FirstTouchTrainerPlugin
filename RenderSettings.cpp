@@ -7,9 +7,9 @@ void FirstTouchTrainer::RenderSettings()
 	ImGui::TextUnformatted("Plugin to see the speed differential between your car, and the ball!");
 
 	static bool pluginEnabled = *bEnabled;
-	static bool shadowEnabled = *tDropShadow;
 	static bool sessionTimerEnabled = *sSessionTimerEnabled;
 	static bool touchZoneEnabled = *zTouchZoneEnabled;
+	static bool shadowEnabled = *tDropShadow;
 
 	/*ImGui::Separator;*/
 	if (ImGui::Checkbox("Enable Speed Differential", &pluginEnabled)) {
@@ -242,12 +242,12 @@ LinearColor FirstTouchTrainer::CanvasColor()
 
 void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas)
 {
+	float drawVelocity = std::get<0>(firstTouchTrainer());
+
+	canvas.SetColor(CanvasColor());
 
 	if (checkConditions() == 1)
 	{
-		float drawVelocity = std::get<0>(firstTouchTrainer());
-
-		canvas.SetColor(CanvasColor());
 		canvas.SetPosition(Vector2{ *tXPos, *tYPos });
 
 		if (gameWrapper->GetbMetric()) {
