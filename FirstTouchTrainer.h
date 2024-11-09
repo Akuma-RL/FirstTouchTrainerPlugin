@@ -51,8 +51,15 @@ protected:
 	std::shared_ptr<LinearColor>sSessionTimerColor;
 
 	//TOUCH ZONE SETTINGS
-	std::shared_ptr<bool>zTouchZoneSphereEnabled;
 	std::shared_ptr<bool>zTouchZoneMatchColor;
+	std::shared_ptr<float>zTouchZoneCircleRadius;
+	std::shared_ptr<int>zTouchZoneCircleThicc;
+	std::shared_ptr<float>zTouchZoneCircleRadiusDefault;
+	std::shared_ptr<int>zTouchZoneCircleThiccDefault;
+
+	std::shared_ptr<bool>zTouchZoneSphereEnabled;
+	std::shared_ptr<float>zTouchZoneSphereRadius;
+	std::shared_ptr<float>zTouchZoneSphereRadiusDefault;
 	//TOUCH ZONE COLOR
 	std::shared_ptr<LinearColor>zTouchZoneColor;
 

@@ -124,13 +124,27 @@ void FirstTouchTrainer::onLoad()
 	//////////////////////////////////////////////////////////////////
 	////////////////////TOUCH ZONE SETTINGS///////////////////////////
 	//////////////////////////////////////////////////////////////////
-
+	
 	zTouchZoneEnabled = std::make_shared<bool>(false);
-	zTouchZoneSphereEnabled = std::make_shared<bool>(false);
-	zTouchZoneMatchColor = std::make_shared<bool>(false);
-
 	cvarManager->registerCvar("FTT_TouchZoneEnabled", "0", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
+
+	zTouchZoneCircleRadius = std::make_shared<float>(0);
+
+	cvarManager->registerCvar("FTT_TouchZoneCircleRadius", "47", "Set the size of the radius of the drawn circle", true, true, 30, true, 60).bindTo(zTouchZoneCircleRadius);
+
+	zTouchZoneCircleThicc = std::make_shared<int>(0);
+
+	cvarManager->registerCvar("FTT_TouchZoneCircleThicc", "1", "Set the thickness of the drawn circle", true, true, 1, true, 3).bindTo(zTouchZoneCircleThicc);
+	
+	zTouchZoneSphereEnabled = std::make_shared<bool>(false);
 	cvarManager->registerCvar("FTT_TouchZoneSphereEnabled", "0", "Enable/Disable Touch Zone Sphere", true, true, 0, true, 1).bindTo(zTouchZoneSphereEnabled);
+	
+	zTouchZoneSphereRadius = std::make_shared<float>(0);
+	zTouchZoneSphereRadiusDefault = std::make_shared <float>(0);
+
+	cvarManager->registerCvar("FTT_TouchZoneSphereRadius", "2", "Set the size of the radius of the drawn sphere", true, true, 1, true, 10).bindTo(zTouchZoneSphereRadius);
+	
+	zTouchZoneMatchColor = std::make_shared<bool>(false);
 	cvarManager->registerCvar("FTT_TouchZoneMatchSpeed", "0", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
 
 	///////////////////////COLOR SETTINGS//////////////////////////////

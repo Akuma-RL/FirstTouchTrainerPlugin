@@ -181,15 +181,42 @@ void FirstTouchTrainer::RenderSettings()
 	{
 		if (ImGui::CollapsingHeader("Touch Zone Display Settings"))
 		{
-			bool touchZoneMatchEnabled = *zTouchZoneMatchColor;
-			bool centerSphereEnabled = *zTouchZoneSphereEnabled;
+			float touchZoneCircleRadius = *zTouchZoneCircleRadius;
 
-			if (ImGui::Checkbox("Enable 3D Sphere", &centerSphereEnabled)) {
-				*zTouchZoneSphereEnabled = centerSphereEnabled;
+			if (ImGui::SliderFloat("Circle Radius", &touchZoneCircleRadius, 30.f, 60.f)) {
+				*zTouchZoneCircleRadius = touchZoneCircleRadius;
 			}
 			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("Enables/Disables a 3D sphere in the center of the ball");
+				std::string hoverCircleRadius = "Circle Radius is " + std::to_string(touchZoneCircleRadius);
+				ImGui::SetTooltip(hoverCircleRadius.c_str());
 			}
+			int touchZoneCircleThicc = *zTouchZoneCircleThicc;
+			if (ImGui::SliderInt("Circle Thickness", &touchZoneCircleThicc, 1.f, 5.f)) {
+				*zTouchZoneCircleThicc = touchZoneCircleThicc;
+			}
+			if (ImGui::IsItemHovered()) {
+				std::string hoverCircleThicc = "Circle Thickness is " + std::to_string(touchZoneCircleThicc);
+				ImGui::SetTooltip(hoverCircleThicc.c_str());
+			}
+			float touchZoneCircleRadiusDefault = 47.f;
+			int touchZoneCircleThiccDefault = 1;
+			//reset sliders to default
+			if (ImGui::Button("Reset Defaults##3")) {
+				*zTouchZoneCircleRadius = touchZoneCircleRadiusDefault;
+				*zTouchZoneCircleThicc = touchZoneCircleThiccDefault;
+			}
+
+			ImGui::TextUnformatted("\n");
+
+			bool touchZoneMatchEnabled = *zTouchZoneMatchColor;
+
+			if (ImGui::Checkbox("Enable/Disable Match Color", &touchZoneMatchEnabled)) {
+				*zTouchZoneMatchColor = touchZoneMatchEnabled;
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Enable/Disable Enable this to have the drawn circle match the color of the speed indicator within the ranges");
+			}
+
 			//Getting color data from user for the session timer
 			LinearColor touchZoneColor = *zTouchZoneColor / 255;
 			if (ImGui::ColorEdit4("Touch Zone Color", &touchZoneColor.R)) {
@@ -208,11 +235,32 @@ void FirstTouchTrainer::RenderSettings()
 				ImGui::SetTooltip("Reset the colors to the default value assigned to them");
 			}
 
-			if (ImGui::Checkbox("Enable/Disable Match Color", &touchZoneMatchEnabled)) {
-				*zTouchZoneMatchColor = touchZoneMatchEnabled;
+			ImGui::TextUnformatted("\n");
+
+			bool centerSphereEnabled = *zTouchZoneSphereEnabled;
+			float touchZoneSphereRadius = *zTouchZoneSphereRadius;
+
+			if (ImGui::Checkbox("Enable 3D Sphere", &centerSphereEnabled)) {
+				*zTouchZoneSphereEnabled = centerSphereEnabled;
 			}
 			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("Enable/Disable Enable this to have the drawn circle match the color of the speed indicator within the ranges");
+				ImGui::SetTooltip("Enables/Disables a 3D sphere in the center of the ball");
+			}
+
+			if (centerSphereEnabled) {
+				if (ImGui::SliderFloat("Sphere Radius", &touchZoneSphereRadius, 1.f, 10.f)) {
+					*zTouchZoneSphereRadius = touchZoneSphereRadius;
+				}
+				if (ImGui::IsItemHovered()) {
+					std::string hoverSphereRadius = "Sphere Radius is " + std::to_string(touchZoneSphereRadius);
+					ImGui::SetTooltip(hoverSphereRadius.c_str());
+
+				}
+				float touchZoneSphereRadiusDefault = 2.f;
+				//reset sliders to default
+				if (ImGui::Button("Reset Defaults##4")) {
+					*zTouchZoneSphereRadius = touchZoneSphereRadiusDefault;
+				}
 			}
 		}
 	}
@@ -317,6 +365,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		Vector v = ball.GetLocation();
 		Rotator r = ball.GetRotation();
+		float ballRadius = ball.GetRadius();
 
 		Vector Circle_v(v.X, v.Y, v.Z + 89.13);
 		Quat no_rot(0.f, 1.f, 0.f, 0.f);
@@ -333,17 +382,16 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		if (IsBallInAir() == 1) {
 
 			if (diff < 1000.f && *zTouchZoneSphereEnabled) {
-				RT::Sphere(v, ball_rot, 2.f).Draw(canvas, frust, camera.GetLocation(), 18);
+				RT::Sphere(v, ball_rot, *zTouchZoneSphereRadius).Draw(canvas, frust, camera.GetLocation(), 18);
 			}
-
-			float radius = 50.0f;
 
 			Vector loc = v - Circle_v;
 			loc = loc + v;
+			RT::Circle circ{ loc, no_rot, *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32};
 
-			RT::Circle circ{ loc, no_rot, radius };
-
-			circ.Draw(canvas, frust);
+			if (car.GetLocation().Z < v.Z + ballRadius) {
+				circ.Draw(canvas, frust);
+			}
 		}
 	}
 
