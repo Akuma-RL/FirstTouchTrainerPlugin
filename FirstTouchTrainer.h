@@ -51,17 +51,19 @@ protected:
 	std::shared_ptr<LinearColor>sSessionTimerColor;
 
 	//TOUCH ZONE SETTINGS
-	std::shared_ptr<bool>zTouchZoneMatchColor;
+	std::shared_ptr<bool>zTouchZoneCircleEnabled;
 	std::shared_ptr<float>zTouchZoneCircleRadius;
 	std::shared_ptr<int>zTouchZoneCircleThicc;
-	std::shared_ptr<float>zTouchZoneCircleRadiusDefault;
-	std::shared_ptr<int>zTouchZoneCircleThiccDefault;
 
 	std::shared_ptr<bool>zTouchZoneSphereEnabled;
 	std::shared_ptr<float>zTouchZoneSphereRadius;
-	std::shared_ptr<float>zTouchZoneSphereRadiusDefault;
+
 	//TOUCH ZONE COLOR
 	std::shared_ptr<LinearColor>zTouchZoneColor;
+	std::shared_ptr<LinearColor>zTouchZoneSphereColor;
+	std::shared_ptr<bool>zTouchZoneMatchColor;
+	std::shared_ptr<bool>zTouchZoneSphereMatchColor;
+
 
 	//GET FTT DRAWN COLOR
 	std::shared_ptr<LinearColor>gDrawnColor;
@@ -83,13 +85,14 @@ public:
 	void RenderFTT(CanvasWrapper canvas);
 	void RenderSessionTimer(CanvasWrapper canvas);
 	void RenderTouchZone(CanvasWrapper canvas);
-
+	void RenderSphere(CanvasWrapper canvas);
 	LinearColor CanvasColor();
 	
 	int checkConditions();
 	int timerCheckConditions();
 	int touchZoneCheckConditions();
 	float IsBallInAir();
+	int InReplay();
 
 	std::string toStringPrecision(float InValue, int Precision);
 };

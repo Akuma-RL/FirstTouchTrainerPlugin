@@ -32,7 +32,7 @@ void FirstTouchTrainer::onLoad()
 	//////////////////////////////////////////////////////////////////
 	bEnabled = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_Enable", "1", "Show First Touch Trainer", true, true, 0, true, 1).bindTo(bEnabled);
+	cvarManager->registerCvar("FTT_Enable", "0", "Show First Touch Trainer", true, true, 0, true, 1).bindTo(bEnabled);
 
 	/////////////////////////X SETTINGS////////////////////////////////
 
@@ -83,7 +83,7 @@ void FirstTouchTrainer::onLoad()
 	//DROP SHADOW//
 	tDropShadow = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_Shadow", "1", "Enable text drop shadows", true, true, 0, true, 1).bindTo(tDropShadow);
+	cvarManager->registerCvar("FTT_Shadow", "0", "Enable text drop shadows", true, true, 0, true, 1).bindTo(tDropShadow);
 
 	//////////////////////////////////////////////////////////////////
 	///////////////SESSION TIMER OSD SETTINGS/////////////////////////
@@ -124,9 +124,12 @@ void FirstTouchTrainer::onLoad()
 	//////////////////////////////////////////////////////////////////
 	////////////////////TOUCH ZONE SETTINGS///////////////////////////
 	//////////////////////////////////////////////////////////////////
-	
+
 	zTouchZoneEnabled = std::make_shared<bool>(false);
 	cvarManager->registerCvar("FTT_TouchZoneEnabled", "0", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
+
+	zTouchZoneCircleEnabled = std::make_shared<bool>(false);
+	cvarManager->registerCvar("FTT_TouchZoneCircleEnabled", "1", "Enable/Disable Touch Zone Circle", true, true, 0, true, 1).bindTo(zTouchZoneCircleEnabled);
 
 	zTouchZoneCircleRadius = std::make_shared<float>(0);
 
@@ -135,17 +138,23 @@ void FirstTouchTrainer::onLoad()
 	zTouchZoneCircleThicc = std::make_shared<int>(0);
 
 	cvarManager->registerCvar("FTT_TouchZoneCircleThicc", "1", "Set the thickness of the drawn circle", true, true, 1, true, 3).bindTo(zTouchZoneCircleThicc);
-	
+
 	zTouchZoneSphereEnabled = std::make_shared<bool>(false);
 	cvarManager->registerCvar("FTT_TouchZoneSphereEnabled", "0", "Enable/Disable Touch Zone Sphere", true, true, 0, true, 1).bindTo(zTouchZoneSphereEnabled);
-	
-	zTouchZoneSphereRadius = std::make_shared<float>(0);
-	zTouchZoneSphereRadiusDefault = std::make_shared <float>(0);
 
-	cvarManager->registerCvar("FTT_TouchZoneSphereRadius", "2", "Set the size of the radius of the drawn sphere", true, true, 1, true, 10).bindTo(zTouchZoneSphereRadius);
-	
+	zTouchZoneSphereRadius = std::make_shared<float>(0);
+
+	cvarManager->registerCvar("FTT_TouchZoneSphereRadius", "5", "Set the size of the radius of the drawn sphere", true, true, 1, true, 10).bindTo(zTouchZoneSphereRadius);
+
+	zTouchZoneSphereColor = std::make_shared<LinearColor>();
+
+	cvarManager->registerCvar("FTT_TouchZoneSphereColor", "#FF0000FF", "Set the color of the Sphere", true).bindTo(zTouchZoneSphereColor);
+
 	zTouchZoneMatchColor = std::make_shared<bool>(false);
-	cvarManager->registerCvar("FTT_TouchZoneMatchSpeed", "0", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
+	cvarManager->registerCvar("FTT_TouchZoneMatchColor", "1", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
+
+	zTouchZoneSphereMatchColor = std::make_shared<bool>(false);
+	cvarManager->registerCvar("FTT_TouchZoneSphereMatchColor", "1", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneSphereMatchColor);
 
 	///////////////////////COLOR SETTINGS//////////////////////////////
 
@@ -175,25 +184,25 @@ void FirstTouchTrainer::onLoad()
 				RenderSessionTimer(canvas);
 			}
 
-			if (*zTouchZoneEnabled)
+			if (*zTouchZoneEnabled || *zTouchZoneSphereEnabled)
 			{
 				RenderTouchZone(canvas);
+			}
+			if (*zTouchZoneSphereEnabled)
+			{
+				RenderSphere(canvas);
 			}
 		});
 }
 
 void FirstTouchTrainer::OnFreeplayLoad(std::string eventName)
 {
-	//circles.clear();
-	//cvarManager->log(std::string("OnFreeplayLoad") + eventName);
-	//if (*zTouchZoneEnabled) {
-	//	gameWrapper->RegisterDrawable(std::bind(&FirstTouchTrainer::RenderTouchZone, this, std::placeholders::_1));
-	//}
+
 }
 
 void FirstTouchTrainer::OnFreeplayDestroy(std::string eventName)
 {
-	//gameWrapper->UnregisterDrawables();
+
 }
 
 std::tuple<float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
@@ -238,10 +247,10 @@ int FirstTouchTrainer::checkConditions()
 {
 	//check if OSD is enabled
 	if (!*bEnabled) {
-		if (!*zTouchZoneEnabled) { return 0; }
+		if (!*zTouchZoneEnabled) { if (!*zTouchZoneSphereEnabled) { return 0; } }
 	}
 	//check if player is in online match
-	if (!gameWrapper->IsInGame()) { return 0; }
+	if (gameWrapper->IsInOnlineGame()) { return 0; }
 
 	return 1;
 }
@@ -249,7 +258,7 @@ int FirstTouchTrainer::checkConditions()
 int FirstTouchTrainer::timerCheckConditions()
 {
 	//check if session timer is enabled
-	if (*sSessionTimerEnabled == 0) { return 0; }
+	if (!*sSessionTimerEnabled) { return 0; }
 
 	//check if player is in online match
 	if (!gameWrapper->IsInGame()) { return 0; }
@@ -259,7 +268,7 @@ int FirstTouchTrainer::timerCheckConditions()
 
 int FirstTouchTrainer::touchZoneCheckConditions()
 {
-	if (*zTouchZoneEnabled == 0) { return 0; }
+	if (!*zTouchZoneEnabled) { return 0; }
 
 
 	if (!gameWrapper->IsInGame()) { return 0; }
@@ -269,12 +278,15 @@ int FirstTouchTrainer::touchZoneCheckConditions()
 
 float FirstTouchTrainer::IsBallInAir()
 {
-	if (!*zTouchZoneEnabled) { return 0; }
-
 	float ballZ = std::get<3>(firstTouchTrainer());
 
 	if (ballZ <= 400.0f) { return 0; }
 	return 1;
+}
+
+int FirstTouchTrainer::InReplay()
+{
+
 }
 
 void FirstTouchTrainer::onUnload() { }
