@@ -87,6 +87,8 @@ public:
 	void RenderTouchZone(CanvasWrapper canvas);
 	void RenderSphere(CanvasWrapper canvas);
 	LinearColor CanvasColor();
+
+	Quat fromEuler(float x, float y, float z);
 	
 	int checkConditions();
 	int timerCheckConditions();

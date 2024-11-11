@@ -1,6 +1,9 @@
+#define _USE_MATH_DEFINES
 #include "pch.h"
 #include "FirstTouchTrainer.h"
 #include "RenderingTools/RenderingTools.h"
+#include <iostream>
+#include <math.h>
 
 void FirstTouchTrainer::RenderSettings()
 {
@@ -187,7 +190,7 @@ void FirstTouchTrainer::RenderSettings()
 		}
 	}
 
-	if (ImGui::CollapsingHeader("Center Sphere Settings")) 
+	if (ImGui::CollapsingHeader("Center Sphere Settings"))
 	{
 
 		bool touchZoneSphereColorMatchEnabled = *zTouchZoneSphereMatchColor;
@@ -364,7 +367,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 	{
 		if (gameWrapper->IsInOnlineGame() && ingame != 2) { return; }
 
-		ServerWrapper server = (ingame ==1) ? gameWrapper->GetGameEventAsServer() : gameWrapper->GetGameEventAsReplay();
+		ServerWrapper server = (ingame == 1) ? gameWrapper->GetGameEventAsServer() : gameWrapper->GetGameEventAsReplay();
 		if (server.IsNull()) { return; }
 
 		CameraWrapper camera = gameWrapper->GetCamera();
@@ -381,8 +384,56 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		Vector ballLocation = ball.GetLocation();
 		Rotator ballRotation = ball.GetRotation();
 		float ballRadius = ball.GetRadius();
+		Vector ballVelocity = ball.GetVelocity();
+		Vector ballVelocityNormalized = ballVelocity.getNormalized();
 
-		Vector offset(ballLocation.X, ballLocation.Y, ballLocation.Z + 89.13);
+		float ballSpeed = ballVelocity.magnitude();
+
+		Vector oppositeDirection(-ballVelocityNormalized.X, -ballVelocityNormalized.Y, -ballVelocityNormalized.Z);
+
+		float maxSpeed = 1889.f;
+		float maxTiltDegrees = .75f;
+		float minTiltDegrees = 0.f;
+		float tiltAngle = minTiltDegrees + (maxTiltDegrees - minTiltDegrees) * (ballSpeed / maxSpeed);
+		tiltAngle = std::clamp(tiltAngle, minTiltDegrees, maxTiltDegrees);
+
+		float pitch = tiltAngle * oppositeDirection.Y;
+		float yaw = tiltAngle * oppositeDirection.X;
+		float roll = tiltAngle * oppositeDirection.Z;
+
+		Quat circleRotation = FirstTouchTrainer::fromEuler(pitch, -yaw, roll);
+
+		float minXPos = 0;
+		float maxXPos = 40;
+		float x;
+		if (minXPos < 0) x = minXPos;
+		if (x > maxXPos) x - maxXPos;
+		float slidingXPosition = minXPos + (maxXPos - minXPos) * (ballSpeed / maxSpeed);
+
+
+		float minYPos = 0;
+		float maxYPos = 40;
+		float y;
+		if (minYPos < 0) y = minYPos;
+		if (y > maxYPos) y - maxYPos;
+		float slidingYPosition = minYPos + (maxYPos - minYPos) * (ballSpeed / maxSpeed);
+
+		float minZPos = 40;
+		float maxZPos = 0;
+		float z;
+		if (minZPos < 0) z = minZPos;
+		if (z > maxZPos) z = maxZPos;
+		float slidingZPosition = minZPos + (maxZPos - minZPos) * (ballSpeed / maxSpeed);
+
+	
+
+		slidingZPosition = std::clamp(slidingZPosition, minZPos, maxZPos);
+
+		float angleToOppositeDir = atan2(oppositeDirection.Y, oppositeDirection.X);
+
+		Vector offset(cos(angleToOppositeDir) * ballRadius, sin(angleToOppositeDir) * ballRadius, -89.13);
+
+
 		Quat noRotation(0.f, 1.f, 0.f, 0.f);
 		Quat ballRotQuat = RotatorToQuat(ballRotation);
 
@@ -392,9 +443,11 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		}
 
 		if (IsBallInAir() == 1) {
-			Vector loc = ballLocation - offset;
-			loc = loc + ballLocation;
-			RT::Circle circ{ loc, noRotation, *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32 };
+			Vector circleLocation = ballLocation + offset;
+			circleLocation = circleLocation + Vector(0, 0, slidingZPosition);
+			//circleLocation = RotateVectorWithQuat(circleLocation, circleRotation);
+
+			RT::Circle circ{ circleLocation, circleRotation.normalize(), *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32};
 
 			if (*zTouchZoneCircleEnabled) {
 				if (car.GetLocation().Z < ballLocation.Z) {
@@ -403,7 +456,6 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 			}
 		}
 	}
-
 	return;
 }
 
@@ -440,10 +492,30 @@ void FirstTouchTrainer::RenderSphere(CanvasWrapper canvas)
 		if (IsBallInAir() == 1) {
 
 			if (*zTouchZoneSphereEnabled) {
-				RT::Sphere(ballLocation, ballRotQuat, *zTouchZoneSphereRadius).Draw(canvas, frust, camera.GetLocation(), 18);
+				RT::Sphere(ballLocation, ballRotQuat.normalize(), *zTouchZoneSphereRadius).Draw(canvas, frust, camera.GetLocation(), 18);
 			}
 		}
 	}
-
 	return;
+}
+
+Quat FirstTouchTrainer::fromEuler(float x, float y, float z)
+{
+	x = x * 0.5;
+	y = y * 0.5;
+	z = z * 0.5;
+
+	float cX = cosf(x);
+	float cY = cosf(y);
+	float cZ = cosf(z);
+
+	float sX = sinf(x);
+	float sY = sinf(y);
+	float sZ = sinf(z);
+
+	return Quat(
+		cX * cY * cZ - sX * sY * sZ,
+		sX * cY * cZ + sY * sZ * cX,
+		sY * cX * cZ - sX * sZ * cY,
+		sX * sY * cZ + sZ * cX * cY);
 }

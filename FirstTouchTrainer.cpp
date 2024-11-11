@@ -280,7 +280,7 @@ float FirstTouchTrainer::IsBallInAir()
 {
 	float ballZ = std::get<3>(firstTouchTrainer());
 
-	if (ballZ <= 400.0f) { return 0; }
+	if (ballZ <= 0.0f) { return 0; }
 	return 1;
 }
 
