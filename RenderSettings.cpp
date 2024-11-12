@@ -393,52 +393,57 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		float minSpeed = 600;
 		float maxSpeed = 2100;
+
 		float minTiltDegrees = 0.f;
 		float maxTiltDegrees = .75f;
 
+		float minPosition = 0;
+		float maxPosition = 40;
+		float maxZPosition = 29.71;
+
 		float tiltAngle = 0.0f;
+
+		float angleToOppositeDir = atan2(oppositeDirection.Y, oppositeDirection.X);
+		Vector offset(0.f, 0.f, -89.13);
+
+		float xPosition = 0.0f;
+		float yPosition = 0.0f;
+		float zPosition = 0.0f;
+
 		if (ballSpeed > minSpeed) {
-			// Calculate tilt angle based on speed, but only between minSpeed and maxSpeed
 			float normalizedSpeed = (ballSpeed - minSpeed) / (maxSpeed - minSpeed);
+
+			offset = Vector(cos(angleToOppositeDir) * ballRadius, sin(angleToOppositeDir) * ballRadius, -89.13);
+
 			tiltAngle = minTiltDegrees + (maxTiltDegrees - minTiltDegrees) * normalizedSpeed;
+
+			xPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+			yPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+			zPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
 		}
-		//tiltAngle = minTiltDegrees + (maxTiltDegrees - minTiltDegrees) * (ballSpeed / maxSpeed);
+
 		tiltAngle = std::clamp(tiltAngle, minTiltDegrees, maxTiltDegrees);
+
+		xPosition = std::clamp(xPosition, minPosition, maxPosition);
+		yPosition = std::clamp(yPosition, minPosition, maxPosition);
+		zPosition = std::clamp(zPosition, minPosition, maxZPosition);
 
 		float pitch = tiltAngle * oppositeDirection.Y;
 		float yaw = tiltAngle * oppositeDirection.X;
 		float roll = tiltAngle * oppositeDirection.X * oppositeDirection.Y;
 
-		Quat circleRotation = FirstTouchTrainer::fromEuler(pitch, -yaw, roll);
-
-		float minPosition = 0;
-		float maxPosition = 40;
-
-		float xPosition = minPosition + (maxPosition - minPosition) * (ballSpeed / maxSpeed);
-		xPosition = std::clamp(xPosition, minPosition, maxPosition);
 		float x = xPosition * ballVelocityNormalized.X;
-		if (minPosition < 0) { x = minPosition; }
-		if (x > maxPosition) { x = maxPosition; }
-
-		float yPosition = minPosition + (maxPosition - minPosition) * (ballSpeed / maxSpeed);
-		yPosition = std::clamp(yPosition, minPosition, maxPosition);
 		float y = yPosition * ballVelocityNormalized.Y;
-		if (minPosition < 0) { y = minPosition; }
-		if (y > maxPosition) { y = maxPosition; }
-
-		float maxZPosition = 29.71;
-		float zPosition = minPosition + (maxZPosition - minPosition) * (ballSpeed / maxSpeed);
-		zPosition = std::clamp(zPosition, minPosition, maxZPosition);
 		float z = zPosition * ballVelocityNormalized.X * ballVelocityNormalized.Y;
-		if (minPosition < 0) { z = minPosition; }
-		if (z > maxPosition) { z = maxPosition; }
 
-		LOG("ballSpeed = {} x = {} y = {} z = {}", ballSpeed, x, y, z);
+
+		Quat circleRotation = FirstTouchTrainer::fromEuler(pitch, -yaw, roll);
 		Vector circlePosition(x, y, z);
 
-		float angleToOppositeDir = atan2(oppositeDirection.Y, oppositeDirection.X);
 
-		Vector offset(cos(angleToOppositeDir) * ballRadius, sin(angleToOppositeDir) * ballRadius, -89.13);
+		LOG("ballSpeed = {} x = {} y = {} z = {}", ballSpeed, x, y, z);
+
+
 
 
 		Quat noRotation(0.f, 1.f, 0.f, 0.f);
@@ -499,7 +504,7 @@ void FirstTouchTrainer::RenderSphere(CanvasWrapper canvas)
 		if (IsBallInAir() == 1) {
 
 			if (*zTouchZoneSphereEnabled) {
-				RT::Sphere(ballLocation, ballRotQuat.normalize(), *zTouchZoneSphereRadius).Draw(canvas, frust, camera.GetLocation(), 18);
+				RT::Sphere(ballLocation.getNormalized() , ballRotQuat.normalize(), *zTouchZoneSphereRadius).Draw(canvas, frust, camera.GetLocation(), 18);
 			}
 		}
 	}
