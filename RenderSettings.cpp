@@ -383,6 +383,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		Vector ballLocation = ball.GetLocation();
 		Rotator ballRotation = ball.GetRotation();
+		Quat ballRotQuat = RotatorToQuat(ballRotation);
 		float ballRadius = ball.GetRadius();
 		Vector ballVelocity = ball.GetVelocity();
 		Vector ballVelocityNormalized = ballVelocity.getNormalized();
@@ -391,7 +392,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		Vector oppositeDirection(-ballVelocityNormalized.X, -ballVelocityNormalized.Y, -ballVelocityNormalized.Z);
 
-		float minSpeed = 600;
+		float minSpeed = 300;
 		float maxSpeed = 2100;
 
 		float minTiltDegrees = 0.f;
@@ -439,15 +440,6 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		Quat circleRotation = FirstTouchTrainer::fromEuler(pitch, -yaw, roll);
 		Vector circlePosition(x, y, z);
-
-
-		LOG("ballSpeed = {} x = {} y = {} z = {}", ballSpeed, x, y, z);
-
-
-
-
-		Quat noRotation(0.f, 1.f, 0.f, 0.f);
-		Quat ballRotQuat = RotatorToQuat(ballRotation);
 
 		canvas.SetColor(*zTouchZoneColor);
 		if (*zTouchZoneMatchColor) {
