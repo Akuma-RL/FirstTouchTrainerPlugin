@@ -142,7 +142,7 @@ void FirstTouchTrainer::RenderSettings()
 		bool touchZoneColorMatchEnabled = *zTouchZoneMatchColor;
 		float touchZoneCircleRadius = *zTouchZoneCircleRadius;
 
-		const char* items[] = { "Default", "Velocity Driven" };
+		const char* items[] = { "Default", "Velocity Driven", "Keep it Up" };
 		static int item_selected_idx = 0; // Here we store our selection data as an index.
 
 		// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
@@ -415,6 +415,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		float ballSpeed = ballVelocity.magnitude();
 
 		Vector oppositeDirection(-ballVelocityNormalized.X, -ballVelocityNormalized.Y, -ballVelocityNormalized.Z);
+		Vector sameDirection(ballVelocityNormalized.X, ballVelocityNormalized.Y, ballVelocityNormalized.Z);
 
 		float minSpeed = 800;
 		float maxSpeed = 2100;
@@ -429,6 +430,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		float tiltAngle = 0.0f;
 
 		float angleToOppositeDir = atan2(oppositeDirection.Y, oppositeDirection.X);
+		float angleToSameDir = atan2(sameDirection.Y, sameDirection.X);
 		Vector staticOffset(ballLocation.X, ballLocation.Y, ballLocation.Z + 89.13);
 		Vector offset(0.f, 0.f, -89.13);
 
@@ -436,16 +438,33 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		float yPosition = 0.0f;
 		float zPosition = 0.0f;
 
-		if (ballSpeed > minSpeed) {
-			float normalizedSpeed = (ballSpeed - minSpeed) / (maxSpeed - minSpeed);
+		if (*index == 1) {
 
-			offset = Vector(cos(angleToOppositeDir) * ballRadius, sin(angleToOppositeDir) * ballRadius, -89.13);
+			if (ballSpeed > minSpeed) {
+				float normalizedSpeed = (ballSpeed - minSpeed) / (maxSpeed - minSpeed);
 
-			tiltAngle = minTiltDegrees + (maxTiltDegrees - minTiltDegrees) * normalizedSpeed;
+				offset = Vector(cos(angleToOppositeDir) * ballRadius, sin(angleToOppositeDir) * ballRadius, -89.13);
 
-			xPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
-			yPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
-			zPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+				tiltAngle = minTiltDegrees + (maxTiltDegrees - minTiltDegrees) * normalizedSpeed;
+
+				xPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+				yPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+				zPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+			}
+		}
+
+		if (*index == 2) {
+			if (ballSpeed > minSpeed) {
+				float normalizedSpeed = (ballSpeed - minSpeed) / (maxSpeed - minSpeed);
+
+				offset = Vector(cos(angleToSameDir) * ballRadius, sin(angleToSameDir) * ballRadius, -89.13);
+
+				tiltAngle = minTiltDegrees + (maxTiltDegrees - minTiltDegrees) * normalizedSpeed;
+
+				xPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+				yPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+				zPosition = minPosition + (maxPosition - minPosition) * normalizedSpeed;
+			}
 		}
 
 		tiltAngle = std::clamp(tiltAngle, minTiltDegrees, maxTiltDegrees);
@@ -464,6 +483,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 
 		Quat circleRotation = FirstTouchTrainer::fromEuler(pitch, -yaw, roll);
+		Quat circleEDRotation = FirstTouchTrainer::fromEuler(-pitch, yaw, -roll);
 		Quat noRotation(0.f, 1.f, 0.f, 0.f);
 		Vector circlePosition(x, y, z);
 
@@ -476,11 +496,6 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 			Vector circleStaticLocation = ballLocation - staticOffset;
 			circleStaticLocation = circleStaticLocation + ballLocation;
 
-			Vector circleDynamicLocation = ballLocation + offset;
-			circleDynamicLocation = circleDynamicLocation + circlePosition;
-			//circleLocation = RotateVectorWithQuat(circleLocation, circleRotation);
-
-
 			if (*index == 0) {
 				RT::Circle circ{ circleStaticLocation, noRotation, *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32 };
 
@@ -489,6 +504,9 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 				}
 			}
 
+			Vector circleDynamicLocation = ballLocation + offset;
+			circleDynamicLocation = circleDynamicLocation + circlePosition;
+
 			if (*index == 1) {
 				RT::Circle circ{ circleDynamicLocation, circleRotation.normalize(), *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32 };
 
@@ -496,7 +514,17 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 					circ.Draw(canvas, frust);
 				}
 			}
+			Vector circleEDLocation = ballLocation + offset;
+			circleEDLocation = circleEDLocation + circlePosition;
 
+			if (*index == 2)
+			{
+				RT::Circle circ{ circleEDLocation, circleEDRotation.normalize(), *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32 };
+
+				if (car.GetLocation().Z < ballLocation.Z) {
+					circ.Draw(canvas, frust);
+				}
+			}
 		}
 	}
 	return;

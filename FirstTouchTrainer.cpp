@@ -83,7 +83,7 @@ void FirstTouchTrainer::onLoad()
 	//DROP SHADOW//
 	tDropShadow = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_Shadow", "0", "Enable text drop shadows", true, true, 0, true, 1, true).bindTo(tDropShadow);
+	cvarManager->registerCvar("FTT_Shadow", "1", "Enable text drop shadows", true, true, 0, true, 1, true).bindTo(tDropShadow);
 
 	//////////////////////////////////////////////////////////////////
 	///////////////SESSION TIMER OSD SETTINGS/////////////////////////
