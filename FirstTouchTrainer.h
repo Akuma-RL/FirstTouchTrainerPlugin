@@ -64,6 +64,8 @@ protected:
 	std::shared_ptr<bool>zTouchZoneMatchColor;
 	std::shared_ptr<bool>zTouchZoneSphereMatchColor;
 
+	std::shared_ptr<int>index;
+
 
 	//GET FTT DRAWN COLOR
 	std::shared_ptr<LinearColor>gDrawnColor;

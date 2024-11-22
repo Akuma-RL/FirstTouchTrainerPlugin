@@ -138,8 +138,32 @@ void FirstTouchTrainer::RenderSettings()
 
 	if (ImGui::CollapsingHeader("Touch Zone Display Settings"))
 	{
+		index = std::make_shared<int>(0);
 		bool touchZoneColorMatchEnabled = *zTouchZoneMatchColor;
 		float touchZoneCircleRadius = *zTouchZoneCircleRadius;
+
+		const char* items[] = { "Default", "Velocity Driven" };
+		static int item_selected_idx = 0; // Here we store our selection data as an index.
+
+		// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
+		const char* combo_preview_value = items[item_selected_idx];
+
+		*index = item_selected_idx;
+
+		if (ImGui::BeginCombo("Touch Zone Behavior", combo_preview_value, ImGuiComboFlags_HeightSmall))
+		{
+			for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+			{
+				const bool is_selected = (item_selected_idx == n);
+				if (ImGui::Selectable(items[n], is_selected))
+					item_selected_idx = n;
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
 
 		if (ImGui::SliderFloat("Circle Radius", &touchZoneCircleRadius, 30.f, 60.f)) {
 			*zTouchZoneCircleRadius = touchZoneCircleRadius;
@@ -392,19 +416,20 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 		Vector oppositeDirection(-ballVelocityNormalized.X, -ballVelocityNormalized.Y, -ballVelocityNormalized.Z);
 
-		float minSpeed = 300;
+		float minSpeed = 800;
 		float maxSpeed = 2100;
 
 		float minTiltDegrees = 0.f;
 		float maxTiltDegrees = .75f;
 
-		float minPosition = 0;
-		float maxPosition = 40;
-		float maxZPosition = 29.71;
+		float minPosition = 0.f;
+		float maxPosition = 40.f;
+		float maxZPosition = 29.71f;
 
 		float tiltAngle = 0.0f;
 
 		float angleToOppositeDir = atan2(oppositeDirection.Y, oppositeDirection.X);
+		Vector staticOffset(ballLocation.X, ballLocation.Y, ballLocation.Z + 89.13);
 		Vector offset(0.f, 0.f, -89.13);
 
 		float xPosition = 0.0f;
@@ -439,6 +464,7 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 
 
 		Quat circleRotation = FirstTouchTrainer::fromEuler(pitch, -yaw, roll);
+		Quat noRotation(0.f, 1.f, 0.f, 0.f);
 		Vector circlePosition(x, y, z);
 
 		canvas.SetColor(*zTouchZoneColor);
@@ -447,17 +473,30 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		}
 
 		if (IsBallInAir() == 1) {
-			Vector circleLocation = ballLocation + offset;
-			circleLocation = circleLocation + circlePosition;
+			Vector circleStaticLocation = ballLocation - staticOffset;
+			circleStaticLocation = circleStaticLocation + ballLocation;
+
+			Vector circleDynamicLocation = ballLocation + offset;
+			circleDynamicLocation = circleDynamicLocation + circlePosition;
 			//circleLocation = RotateVectorWithQuat(circleLocation, circleRotation);
 
-			RT::Circle circ{ circleLocation, circleRotation.normalize(), *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32 };
 
-			if (*zTouchZoneCircleEnabled) {
+			if (*index == 0) {
+				RT::Circle circ{ circleStaticLocation, noRotation, *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32 };
+
 				if (car.GetLocation().Z < ballLocation.Z) {
 					circ.Draw(canvas, frust);
 				}
 			}
+
+			if (*index == 1) {
+				RT::Circle circ{ circleDynamicLocation, circleRotation.normalize(), *zTouchZoneCircleRadius, *zTouchZoneCircleThicc, 1, 32 };
+
+				if (car.GetLocation().Z < ballLocation.Z) {
+					circ.Draw(canvas, frust);
+				}
+			}
+
 		}
 	}
 	return;
@@ -496,7 +535,7 @@ void FirstTouchTrainer::RenderSphere(CanvasWrapper canvas)
 		if (IsBallInAir() == 1) {
 
 			if (*zTouchZoneSphereEnabled) {
-				RT::Sphere(ballLocation.getNormalized() , ballRotQuat.normalize(), *zTouchZoneSphereRadius).Draw(canvas, frust, camera.GetLocation(), 18);
+				RT::Sphere(ballLocation, ballRotQuat.normalize(), *zTouchZoneSphereRadius).Draw(canvas, frust, camera.GetLocation(), 18);
 			}
 		}
 	}

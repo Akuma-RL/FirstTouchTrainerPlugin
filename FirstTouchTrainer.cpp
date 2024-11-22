@@ -32,7 +32,7 @@ void FirstTouchTrainer::onLoad()
 	//////////////////////////////////////////////////////////////////
 	bEnabled = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_Enable", "0", "Show First Touch Trainer", true, true, 0, true, 1).bindTo(bEnabled);
+	cvarManager->registerCvar("FTT_Enable", "0", "Show First Touch Trainer", true, true, 0, true, 1, true).bindTo(bEnabled);
 
 	/////////////////////////X SETTINGS////////////////////////////////
 
@@ -43,7 +43,7 @@ void FirstTouchTrainer::onLoad()
 	*tXPosDefault = speedDefaultX;
 	std::string speedDefaultXString = toStringPrecision(speedDefaultX, 2);
 
-	cvarManager->registerCvar("FTT_X_Position", speedDefaultXString, "Change Text X Position", true, true, 0, true, *bScreenSizeX).bindTo(tXPos);
+	cvarManager->registerCvar("FTT_X_Position", speedDefaultXString, "Change Text X Position", true, true, 0, true, *bScreenSizeX, true).bindTo(tXPos);
 
 	/////////////////////////Y SETTINGS////////////////////////////////
 
@@ -54,36 +54,36 @@ void FirstTouchTrainer::onLoad()
 	*tYPosDefault = speedDefaultY;
 	std::string speedDefaultYString = toStringPrecision(speedDefaultY, 2);
 
-	cvarManager->registerCvar("FTT_Y_Position", speedDefaultYString, "Change Text Y Position", true, true, 0, true, *bScreenSizeY).bindTo(tYPos);
+	cvarManager->registerCvar("FTT_Y_Position", speedDefaultYString, "Change Text Y Position", true, true, 0, true, *bScreenSizeY, true).bindTo(tYPos);
 
 	////////////////////////COLOR SETTINGS//////////////////////////////
 
 	//GOOD//
 	cGoodColor = std::make_shared<LinearColor>();
 
-	cvarManager->registerCvar("FTT_Good_Range", "#00FF00", "Good Range Color", true).bindTo(cGoodColor);
+	cvarManager->registerCvar("FTT_Good_Range", "#00FF00", "Good Range Color", true, false, 0, false, 0, true).bindTo(cGoodColor);
 
 	//ALRIGHT//
 	cAlrightColor = std::make_shared<LinearColor>();
 
-	cvarManager->registerCvar("FTT_Alright_Range", "#FFFF00", "Alright Range Color", true).bindTo(cAlrightColor);
+	cvarManager->registerCvar("FTT_Alright_Range", "#FFFF00", "Alright Range Color", true, false, 0, false, 0, true).bindTo(cAlrightColor);
 
 	//BAD//
 	cBadColor = std::make_shared<LinearColor>();
 
-	cvarManager->registerCvar("FTT_Bad_Range", "#FF0000", "Bad Range Color", true).bindTo(cBadColor);
+	cvarManager->registerCvar("FTT_Bad_Range", "#FF0000", "Bad Range Color", true, false, 0, false, 0, true).bindTo(cBadColor);
 
 	/////////////////////GLOBAL TEXT SETTINGS/////////////////////////
 
 	//SIZE//
 	tTextSize = std::make_shared<int>(0);
 
-	cvarManager->registerCvar("FTT_Text_Size", "3", "Change Text Size", true, true, 1, true, 10).bindTo(tTextSize);
+	cvarManager->registerCvar("FTT_Text_Size", "3", "Change Text Size", true, true, 1, true, 10, true).bindTo(tTextSize);
 
 	//DROP SHADOW//
 	tDropShadow = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_Shadow", "0", "Enable text drop shadows", true, true, 0, true, 1).bindTo(tDropShadow);
+	cvarManager->registerCvar("FTT_Shadow", "0", "Enable text drop shadows", true, true, 0, true, 1, true).bindTo(tDropShadow);
 
 	//////////////////////////////////////////////////////////////////
 	///////////////SESSION TIMER OSD SETTINGS/////////////////////////
@@ -91,7 +91,7 @@ void FirstTouchTrainer::onLoad()
 
 	sSessionTimerEnabled = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_SessionTimer", "0", "Turn on session timer to keep track of how long you've been in this training session", true, true, 0, true, 1).bindTo(sSessionTimerEnabled);
+	cvarManager->registerCvar("FTT_SessionTimer", "0", "Turn on session timer to keep track of how long you've been in this training session", true, true, 0, true, 1, true).bindTo(sSessionTimerEnabled);
 
 	/////////////////////////X SETTINGS////////////////////////////////
 
@@ -102,7 +102,7 @@ void FirstTouchTrainer::onLoad()
 	*sSessionTimerXDefault = timerDefaultX;
 	std::string timerDefaultXString = toStringPrecision(timerDefaultX, 2);
 
-	cvarManager->registerCvar("FTT_SessionTimerX", timerDefaultXString, "Change session timer X position", true, true, 0, true, *bScreenSizeX).bindTo(sSessionTimerX);
+	cvarManager->registerCvar("FTT_SessionTimerX", timerDefaultXString, "Change session timer X position", true, true, 0, true, *bScreenSizeX, true).bindTo(sSessionTimerX);
 
 	/////////////////////////Y SETTINGS////////////////////////////////
 
@@ -113,48 +113,48 @@ void FirstTouchTrainer::onLoad()
 	*sSessionTimerYDefault = timerDefaultY;
 	std::string timerDefaultYString = toStringPrecision(timerDefaultY, 2);
 
-	cvarManager->registerCvar("FTT_SessionTimerY", timerDefaultYString, "Change session timer Y position", true, true, 0, true, *bScreenSizeY).bindTo(sSessionTimerY);
+	cvarManager->registerCvar("FTT_SessionTimerY", timerDefaultYString, "Change session timer Y position", true, true, 0, true, *bScreenSizeY, true).bindTo(sSessionTimerY);
 
 	///////////////////////COLOR SETTINGS//////////////////////////////
 
 	sSessionTimerColor = std::make_shared<LinearColor>();
 
-	cvarManager->registerCvar("FTT_SessionTimerColor", "#FFFFFF", "Change timer color", true).bindTo(sSessionTimerColor);
+	cvarManager->registerCvar("FTT_SessionTimerColor", "#FFFFFF", "Change timer color", true, false, 0, false, 0, true).bindTo(sSessionTimerColor);
 
 	//////////////////////////////////////////////////////////////////
 	////////////////////TOUCH ZONE SETTINGS///////////////////////////
 	//////////////////////////////////////////////////////////////////
 
 	zTouchZoneEnabled = std::make_shared<bool>(false);
-	cvarManager->registerCvar("FTT_TouchZoneEnabled", "0", "Enable/Disable Touch Zone", true, true, 0, true, 1).bindTo(zTouchZoneEnabled);
+	cvarManager->registerCvar("FTT_TouchZoneEnabled", "0", "Enable/Disable Touch Zone", true, true, 0, true, 1, true).bindTo(zTouchZoneEnabled);
 
 	zTouchZoneCircleEnabled = std::make_shared<bool>(false);
-	cvarManager->registerCvar("FTT_TouchZoneCircleEnabled", "1", "Enable/Disable Touch Zone Circle", true, true, 0, true, 1).bindTo(zTouchZoneCircleEnabled);
+	cvarManager->registerCvar("FTT_TouchZoneCircleEnabled", "1", "Enable/Disable Touch Zone Circle", true, true, 0, true, 1, true).bindTo(zTouchZoneCircleEnabled);
 
 	zTouchZoneCircleRadius = std::make_shared<float>(0);
 
-	cvarManager->registerCvar("FTT_TouchZoneCircleRadius", "47", "Set the size of the radius of the drawn circle", true, true, 30, true, 60).bindTo(zTouchZoneCircleRadius);
+	cvarManager->registerCvar("FTT_TouchZoneCircleRadius", "47", "Set the size of the radius of the drawn circle", true, true, 30, true, 60, true).bindTo(zTouchZoneCircleRadius);
 
 	zTouchZoneCircleThicc = std::make_shared<int>(0);
 
-	cvarManager->registerCvar("FTT_TouchZoneCircleThicc", "1", "Set the thickness of the drawn circle", true, true, 1, true, 3).bindTo(zTouchZoneCircleThicc);
+	cvarManager->registerCvar("FTT_TouchZoneCircleThicc", "1", "Set the thickness of the drawn circle", true, true, 1, true, 3, true).bindTo(zTouchZoneCircleThicc);
 
 	zTouchZoneSphereEnabled = std::make_shared<bool>(false);
-	cvarManager->registerCvar("FTT_TouchZoneSphereEnabled", "0", "Enable/Disable Touch Zone Sphere", true, true, 0, true, 1).bindTo(zTouchZoneSphereEnabled);
+	cvarManager->registerCvar("FTT_TouchZoneSphereEnabled", "0", "Enable/Disable Touch Zone Sphere", true, true, 0, true, 1, true).bindTo(zTouchZoneSphereEnabled);
 
 	zTouchZoneSphereRadius = std::make_shared<float>(0);
 
-	cvarManager->registerCvar("FTT_TouchZoneSphereRadius", "5", "Set the size of the radius of the drawn sphere", true, true, 1, true, 10).bindTo(zTouchZoneSphereRadius);
+	cvarManager->registerCvar("FTT_TouchZoneSphereRadius", "5", "Set the size of the radius of the drawn sphere", true, true, 1, true, 10, true).bindTo(zTouchZoneSphereRadius);
 
 	zTouchZoneSphereColor = std::make_shared<LinearColor>();
 
 	cvarManager->registerCvar("FTT_TouchZoneSphereColor", "#FF0000FF", "Set the color of the Sphere", true).bindTo(zTouchZoneSphereColor);
 
 	zTouchZoneMatchColor = std::make_shared<bool>(false);
-	cvarManager->registerCvar("FTT_TouchZoneMatchColor", "1", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneMatchColor);
+	cvarManager->registerCvar("FTT_TouchZoneMatchColor", "1", "Enable to match color of speed indicator", true, true, 0, true, 1, true).bindTo(zTouchZoneMatchColor);
 
 	zTouchZoneSphereMatchColor = std::make_shared<bool>(false);
-	cvarManager->registerCvar("FTT_TouchZoneSphereMatchColor", "1", "Enable to match color of speed indicator", true, true, 0, true, 1).bindTo(zTouchZoneSphereMatchColor);
+	cvarManager->registerCvar("FTT_TouchZoneSphereMatchColor", "1", "Enable to match color of speed indicator", true, true, 0, true, 1, true).bindTo(zTouchZoneSphereMatchColor);
 
 	///////////////////////COLOR SETTINGS//////////////////////////////
 
@@ -280,7 +280,7 @@ float FirstTouchTrainer::IsBallInAir()
 {
 	float ballZ = std::get<3>(firstTouchTrainer());
 
-	if (ballZ <= 0.0f) { return 0; }
+	if (ballZ <= 400.0f) { return 0; }
 	return 1;
 }
 
