@@ -149,7 +149,8 @@ void FirstTouchTrainer::RenderSettings()
 		const char* combo_preview_value = items[item_selected_idx];
 
 		*index = item_selected_idx;
-
+		int startingValue = 0;
+		item_selected_idx = startingValue;
 		if (ImGui::BeginCombo("Touch Zone Behavior", combo_preview_value, ImGuiComboFlags_HeightSmall))
 		{
 			for (int n = 0; n < IM_ARRAYSIZE(items); n++)
