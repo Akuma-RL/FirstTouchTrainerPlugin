@@ -51,6 +51,15 @@ void FirstTouchTrainer::RenderSettings()
 
 	if (ImGui::CollapsingHeader("Speed Display Settings"))
 	{
+		static bool xyEnabled = *bXYZEnabled;
+
+		if (ImGui::Checkbox("Enable XYZ Velocity ONLY", &xyEnabled)) {
+			*bEnabled = xyEnabled;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Include calculation of Z velocity for speed differential");
+		}
+
 		//text size slider
 		ImGui::TextUnformatted("Text Size Slider");
 

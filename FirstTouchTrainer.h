@@ -21,6 +21,7 @@ protected:
 	
 	//ENABLE FEATURES
 	std::shared_ptr<bool>bEnabled;
+	std::shared_ptr<bool>bXYZEnabled;
 	std::shared_ptr<bool>sSessionTimerEnabled;
 	std::shared_ptr<bool>zTouchZoneEnabled;
 

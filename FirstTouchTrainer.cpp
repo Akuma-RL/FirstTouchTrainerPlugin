@@ -34,6 +34,10 @@ void FirstTouchTrainer::onLoad()
 
 	cvarManager->registerCvar("FTT_Enable", "0", "Show First Touch Trainer", true, true, 0, true, 1, true).bindTo(bEnabled);
 
+	bXYZEnabled = std::make_shared<bool>(false);
+
+	cvarManager->registerCvar("FTT_XYEnabled", "0", "Set the velocity difference to XY only", true, true, 0, true, 1, true).bindTo(bXYZEnabled);
+
 	/////////////////////////X SETTINGS////////////////////////////////
 
 	tXPos = std::make_shared<int>(0);
@@ -222,15 +226,35 @@ std::tuple<float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
 	if (car.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
 
 	Vector ballXYZ = ball.GetCurrentRBLocation();
-	Vector carXYZ = car.GetVelocity().magnitude();
+	Vector carPos = car.GetCurrentRBLocation();
 
 	float ballX = ballXYZ.X;
 	float ballY = ballXYZ.Y;
 	float ballZ = ballXYZ.Z;
 
+	Vector ballVel = ball.GetVelocity().magnitude();
+	Vector carVel = car.GetVelocity().magnitude();
+
+	Vector2 carXYVel(car.GetVelocity().X, car.GetVelocity().Y);
+	Vector2 ballXYVel(ball.GetVelocity().X, ball.GetVelocity().Y);
+
 	//make float and get the ball and vehicle magnitude and subtract one from the other
-	float velocityDifference = car.GetVelocity().magnitude() - ball.GetVelocity().magnitude();
-	if (-3 <= velocityDifference && velocityDifference <= 3) { velocityDifference = 0; }
+	float xDifference = carXYVel.X - ballXYVel.X;
+	float yDifference = carXYVel.Y - ballXYVel.Y;
+	float velocityDifference = xDifference + yDifference;
+
+	if (*bXYZEnabled) {
+		velocityDifference = car.GetVelocity().magnitude() - ball.GetVelocity().magnitude();
+
+		if (-3 <= velocityDifference && velocityDifference <= 3) {
+			velocityDifference = 0;
+		}
+	}
+
+	if (-3 <= velocityDifference && velocityDifference <= 3) {
+		velocityDifference = 0;
+	}
+
 	//return the outcome of previous line
 	return { std::make_tuple(velocityDifference, ballX, ballY, ballZ) };
 }
