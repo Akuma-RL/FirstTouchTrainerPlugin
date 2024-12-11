@@ -502,6 +502,11 @@ void FirstTouchTrainer::RenderTouchZone(CanvasWrapper canvas)
 		float yPosition = 0.0f;
 		float zPosition = 0.0f;
 
+		if (*index < 0 || *index > 2)
+		{
+			*index = 0;
+		}
+
 		if (*index == 1) {
 
 			if (ballSpeed > minSpeed) {

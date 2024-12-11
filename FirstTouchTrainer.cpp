@@ -248,6 +248,11 @@ std::tuple<float, float, float, float, float> FirstTouchTrainer::firstTouchTrain
 	float zVelDif = carZMag - ballZMag;
 
 	float velocityDifference = 0;
+	
+	if (*calculationIndex < 0 || *calculationIndex > 2)
+	{
+		*calculationIndex = 0;
+	}
 
 	if (*calculationIndex == 0 || *calculationIndex == 2)
 	{
