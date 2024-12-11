@@ -67,6 +67,7 @@ protected:
 
 	std::shared_ptr<int>index;
 
+	std::shared_ptr<int>calculationIndex;
 
 	//GET FTT DRAWN COLOR
 	std::shared_ptr<LinearColor>gDrawnColor;
@@ -81,7 +82,8 @@ public:
 
 	void OnFreeplayLoad(std::string eventName);
 	void OnFreeplayDestroy(std::string eventName);
-	std::tuple<float, float, float, float> firstTouchTrainer();
+	std::tuple<float, float, float, float, float> firstTouchTrainer();
+	float GetMagnitude(float x, float y);
 
 	virtual void RenderSettings() override;
 

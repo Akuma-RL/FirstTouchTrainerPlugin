@@ -8,6 +8,9 @@ std::shared_ptr<CVarManagerWrapper> _globalCvarManager;
 void FirstTouchTrainer::onLoad()
 {
 	_globalCvarManager = cvarManager;
+	index = std::make_shared<int>(0);
+	calculationIndex = std::make_shared<int>(0);
+
 
 	gDrawnColor = std::make_shared<LinearColor>();
 
@@ -36,7 +39,7 @@ void FirstTouchTrainer::onLoad()
 
 	bXYZEnabled = std::make_shared<bool>(false);
 
-	cvarManager->registerCvar("FTT_XYEnabled", "0", "Set the velocity difference to XY only", true, true, 0, true, 1, true).bindTo(bXYZEnabled);
+	cvarManager->registerCvar("FTT_XYZEnabled", "0", "Calculate speed differential with XYZ Velocity", true, true, 0, true, 1, true).bindTo(bXYZEnabled);
 
 	/////////////////////////X SETTINGS////////////////////////////////
 
@@ -209,21 +212,21 @@ void FirstTouchTrainer::OnFreeplayDestroy(std::string eventName)
 
 }
 
-std::tuple<float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
+std::tuple<float, float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
 {
-	if (checkConditions() == 0) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
+	if (checkConditions() == 0) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f, 0.0f); }
 
 	//create server wrapper to get ball info
 	ServerWrapper server = gameWrapper->GetCurrentGameState();
-	if (server.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
+	if (server.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f, 0.0f); }
 
 	//get ball information and assign to ball
 	BallWrapper ball = server.GetBall();
-	if (ball.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
+	if (ball.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f, 0.0f); }
 
 	//get car information and assign to car
 	CarWrapper car = gameWrapper->GetLocalCar();
-	if (car.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f); }
+	if (car.IsNull()) { return std::make_tuple(0.0f, 0.0f, 0.0f, 93.14f, 0.0f); }
 
 	Vector ballXYZ = ball.GetCurrentRBLocation();
 	Vector carPos = car.GetCurrentRBLocation();
@@ -235,28 +238,45 @@ std::tuple<float, float, float, float> FirstTouchTrainer::firstTouchTrainer()
 	Vector ballVel = ball.GetVelocity().magnitude();
 	Vector carVel = car.GetVelocity().magnitude();
 
-	Vector2 carXYVel(car.GetVelocity().X, car.GetVelocity().Y);
-	Vector2 ballXYVel(ball.GetVelocity().X, ball.GetVelocity().Y);
-
 	//make float and get the ball and vehicle magnitude and subtract one from the other
-	float xDifference = carXYVel.X - ballXYVel.X;
-	float yDifference = carXYVel.Y - ballXYVel.Y;
-	float velocityDifference = xDifference + yDifference;
+	float carXYMag = GetMagnitude(car.GetVelocity().X, car.GetVelocity().Y);
+	float ballXYMag = GetMagnitude(ball.GetVelocity().X, ball.GetVelocity().Y);
 
-	if (*bXYZEnabled) {
+	float carZMag = std::abs(car.GetVelocity().Z);
+	float ballZMag = std::abs(ball.GetVelocity().Z);
+
+	float zVelDif = carZMag - ballZMag;
+
+	float velocityDifference = 0;
+
+	if (*calculationIndex == 0 || *calculationIndex == 2)
+	{
+		velocityDifference = carXYMag - ballXYMag;
+
+		if (-1 <= velocityDifference && velocityDifference <= 1) {
+			velocityDifference = 0;
+		}
+	}
+	if (*calculationIndex == 1)
+	{
 		velocityDifference = car.GetVelocity().magnitude() - ball.GetVelocity().magnitude();
 
-		if (-3 <= velocityDifference && velocityDifference <= 3) {
+		if (-1 <= velocityDifference && velocityDifference <= 1) {
 			velocityDifference = 0;
 		}
 	}
 
-	if (-3 <= velocityDifference && velocityDifference <= 3) {
-		velocityDifference = 0;
+	if (-1 <= zVelDif && zVelDif <= 1) {
+		zVelDif = 0;
 	}
 
 	//return the outcome of previous line
-	return { std::make_tuple(velocityDifference, ballX, ballY, ballZ) };
+	return { std::make_tuple(velocityDifference, ballX, ballY, ballZ, zVelDif) };
+}
+
+float FirstTouchTrainer::GetMagnitude(float x, float y)
+{
+	return std::sqrt((x * x) + (y * y));
 }
 
 //function to transfer string to float with an input level of precision

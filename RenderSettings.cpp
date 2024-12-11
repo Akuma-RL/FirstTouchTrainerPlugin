@@ -38,6 +38,7 @@ void FirstTouchTrainer::RenderSettings()
 	}
 	if (ImGui::Checkbox("Enable Touch Zone", &touchZoneEnabled)) {
 		*zTouchZoneEnabled = touchZoneEnabled;
+		*index = 0;
 	}
 	if (ImGui::IsItemHovered()) {
 		ImGui::SetTooltip("Turn on ball touch zone");
@@ -51,14 +52,38 @@ void FirstTouchTrainer::RenderSettings()
 
 	if (ImGui::CollapsingHeader("Speed Display Settings"))
 	{
-		static bool xyEnabled = *bXYZEnabled;
+		//static bool xyzEnabled = *bXYZEnabled;
 
-		if (ImGui::Checkbox("Enable XYZ Velocity ONLY", &xyEnabled)) {
-			*bEnabled = xyEnabled;
+
+		const char* calcs[] = { "XY Velocity", "XYZ Velocity", "XY & Z Velocity" };
+
+		static int calc_selected_idx = *calculationIndex; // Here we store our selection data as an index.
+
+		if (calc_selected_idx < 0 || calc_selected_idx >= IM_ARRAYSIZE(calcs))
+		{
+			calc_selected_idx = 0; // Reset to a safe default
 		}
-		if (ImGui::IsItemHovered()) {
-			ImGui::SetTooltip("Include calculation of Z velocity for speed differential");
+
+		// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
+
+		const char* calc_preview_value = calcs[calc_selected_idx];
+
+		if (ImGui::BeginCombo("Differential Calculations", calc_preview_value, ImGuiComboFlags_HeightSmall))
+		{
+			for (int c = 0; c < IM_ARRAYSIZE(calcs); c++)
+			{
+				const bool calc_is_selected = (calc_selected_idx == c);
+				if (ImGui::Selectable(calcs[c], calc_is_selected))
+					calc_selected_idx = c;
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (calc_is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
 		}
+
+		*calculationIndex = calc_selected_idx;
 
 		//text size slider
 		ImGui::TextUnformatted("Text Size Slider");
@@ -147,19 +172,15 @@ void FirstTouchTrainer::RenderSettings()
 
 	if (ImGui::CollapsingHeader("Touch Zone Display Settings"))
 	{
-		index = std::make_shared<int>(0);
 		bool touchZoneColorMatchEnabled = *zTouchZoneMatchColor;
 		float touchZoneCircleRadius = *zTouchZoneCircleRadius;
 
-		const char* items[] = { "Default", "Velocity Driven", "Keep it Up" };
-		static int item_selected_idx = 0; // Here we store our selection data as an index.
+		const char* items[] = { "Static", "Velocity Driven", "Keep it Up" };
+		static int item_selected_idx = *index; // Here we store our selection data as an index.
 
 		// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
-		const char* combo_preview_value = items[item_selected_idx];
 
-		*index = item_selected_idx;
-		int startingValue = 0;
-		item_selected_idx = startingValue;
+		const char* combo_preview_value = items[item_selected_idx];
 		if (ImGui::BeginCombo("Touch Zone Behavior", combo_preview_value, ImGuiComboFlags_HeightSmall))
 		{
 			for (int n = 0; n < IM_ARRAYSIZE(items); n++)
@@ -174,6 +195,9 @@ void FirstTouchTrainer::RenderSettings()
 			}
 			ImGui::EndCombo();
 		}
+
+		*index = item_selected_idx;
+
 
 		if (ImGui::SliderFloat("Circle Radius", &touchZoneCircleRadius, 30.f, 60.f)) {
 			*zTouchZoneCircleRadius = touchZoneCircleRadius;
@@ -314,7 +338,6 @@ void FirstTouchTrainer::RenderSettings()
 	return;
 }
 
-
 LinearColor FirstTouchTrainer::CanvasColor()
 {
 	LinearColor Colors;
@@ -339,6 +362,7 @@ LinearColor FirstTouchTrainer::CanvasColor()
 void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas)
 {
 	float drawVelocity = std::get<0>(firstTouchTrainer());
+	float zVelocity = std::get<4>(firstTouchTrainer());
 
 	canvas.SetColor(CanvasColor());
 
@@ -347,13 +371,43 @@ void FirstTouchTrainer::RenderFTT(CanvasWrapper canvas)
 		if (!gameWrapper->IsInGame()) { return; }
 		canvas.SetPosition(Vector2{ *tXPos, *tYPos });
 
-		if (gameWrapper->GetbMetric()) {
-			canvas.DrawString(toStringPrecision(drawVelocity * .036f, 2) + " KPH", *tTextSize, *tTextSize, *tDropShadow);
-		}
-		else {
-			canvas.DrawString(toStringPrecision(drawVelocity / 44.704f, 2) + " MPH", *tTextSize, *tTextSize, *tDropShadow);
+		if (*calculationIndex < 0 || *calculationIndex > 2)
+		{
+			*calculationIndex = 0; // Reset to a safe default
 		}
 
+		if (*calculationIndex == 0 || *calculationIndex == 1)
+		{
+			if (gameWrapper->GetbMetric()) {
+				canvas.DrawString(toStringPrecision(drawVelocity * .036f, 2) + " KPH", *tTextSize, *tTextSize, *tDropShadow);
+			}
+			else {
+				canvas.DrawString(toStringPrecision(drawVelocity / 44.704f, 2) + " MPH", *tTextSize, *tTextSize, *tDropShadow);
+			}
+		}
+
+		if (*calculationIndex == 2)
+		{
+			if (gameWrapper->GetbMetric()) {
+				canvas.DrawString(toStringPrecision(drawVelocity * .036f, 2) + " KPH", *tTextSize, *tTextSize, *tDropShadow);
+
+				canvas.SetPosition(Vector2{ *tXPos + 225, *tYPos + 15 });
+				canvas.DrawString("Z: ");
+
+				canvas.SetPosition(Vector2{ *tXPos + 240, *tYPos + 15 });
+				canvas.DrawString(toStringPrecision(zVelocity * .036f, 2) + " KPH", *tTextSize / 2, *tTextSize / 2, *tDropShadow);
+			}
+			else {
+				canvas.DrawString(toStringPrecision(drawVelocity / 44.704f, 2) + " MPH", *tTextSize, *tTextSize, *tDropShadow);
+
+				canvas.SetPosition(Vector2{ *tXPos + 235, *tYPos + 15 });
+				canvas.DrawString("Z: ");
+
+				canvas.SetPosition(Vector2{ *tXPos + 250, *tYPos + 15 });
+				canvas.DrawString(toStringPrecision(zVelocity / 44.704f, 2) + " MPH", *tTextSize / 2, *tTextSize / 2, *tDropShadow);
+
+			}
+		}
 	}
 	return;
 }
